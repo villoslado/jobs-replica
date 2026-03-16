@@ -136,6 +136,7 @@ body {
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  margin-bottom: 14px;
 }
 
 .color-toggle {
@@ -239,19 +240,6 @@ Respond with ONLY a JSON object in this exact format, no other text:
     <p><b>Caveat on AI Exposure scores:</b> These are rough LLM estimates, not rigorous predictions. A high score does not predict the job will disappear. Software developers score 9/10 because AI is transforming their work &mdash; but demand for software could easily <em>grow</em> as each developer becomes more productive. The score does not account for demand elasticity, latent demand, regulatory barriers, or social preferences for human workers. Many high-exposure jobs will be reshaped, not replaced.</p>
   </div>
 
-  <div class="stats-row">
-    <div class="stat-section">
-      <h3>Total jobs</h3>
-      <div class="stat-big" id="statTotalJobs">&mdash;</div>
-    </div>
-    <div class="stat-section" id="block2"></div>
-    <div class="stat-section" id="block3"></div>
-    <div class="stat-section" id="block4"></div>
-    <div class="stat-section" id="block5"></div>
-    <div class="stat-section" id="block6"></div>
-    <div class="stat-section" id="block7"></div>
-  </div>
-
   <div class="controls-row">
     <div class="stat-section">
       <h3>Layer</h3>
@@ -267,6 +255,19 @@ Respond with ONLY a JSON object in this exact format, no other text:
       <canvas id="gradientLegend" width="80" height="8"></canvas>
       <span id="legendHigh">Growing</span>
     </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-section">
+      <h3>Total jobs</h3>
+      <div class="stat-big" id="statTotalJobs">&mdash;</div>
+    </div>
+    <div class="stat-section" id="block2"></div>
+    <div class="stat-section" id="block3"></div>
+    <div class="stat-section" id="block4"></div>
+    <div class="stat-section" id="block5"></div>
+    <div class="stat-section" id="block6"></div>
+    <div class="stat-section" id="block7"></div>
   </div>
 </div>
 
