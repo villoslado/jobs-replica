@@ -1,0 +1,148 @@
+title,category,claude_disruption,claude_elasticity,claude_net_effect,openai_disruption,openai_elasticity,openai_net_effect
+Actors,entertainment-and-sports,7,6,restructure,6,5,resilient
+Actuaries,math,7,4,replace,6,4,resilient
+Adult basic and secondary education and ESL teachers,education-training-and-library,6,8,augment,6,4,resilient
+Aerospace engineering and operations technologists and technicians,architecture-and-engineering,6,4,resilient,5,6,resilient
+Aerospace engineers,architecture-and-engineering,7,6,restructure,6,7,augment
+Agricultural and food science technicians,life-physical-and-social-science,6,7,augment,5,6,resilient
+Agricultural engineers,architecture-and-engineering,7,8,augment,6,5,resilient
+Agricultural workers,farming-fishing-and-forestry,3,2,resilient,3,4,resilient
+Aircraft and avionics equipment mechanics and technicians,installation-maintenance-and-repair,3,2,resilient,3,4,resilient
+Announcers and DJs,media-and-communication,8,4,replace,7,5,restructure
+"Arbitrators, mediators, and conciliators",legal,6,3,resilient,6,5,resilient
+Architects,architecture-and-engineering,7,6,restructure,6,7,augment
+Architectural and engineering managers,management,6,5,restructure,6,5,resilient
+Athletes and sports competitors,entertainment-and-sports,2,3,resilient,2,5,resilient
+Audiologists,healthcare,5,7,resilient,4,5,resilient
+Automotive service technicians and mechanics,installation-maintenance-and-repair,4,2,resilient,3,5,resilient
+Bakers,production,3,2,resilient,2,5,resilient
+Bioengineers and biomedical engineers,architecture-and-engineering,7,8,augment,7,6,restructure
+Biological technicians,life-physical-and-social-science,6,7,augment,6,5,resilient
+"Broadcast, sound, and video technicians",media-and-communication,6,7,augment,6,5,resilient
+Budget analysts,business-and-financial,7,3,replace,7,5,restructure
+Calibration technologists and technicians,installation-maintenance-and-repair,4,3,resilient,4,5,resilient
+Cardiovascular technologists and technicians,healthcare,4,2,resilient,5,4,resilient
+Career and technical education teachers,education-training-and-library,5,7,resilient,4,5,resilient
+Cartographers and photogrammetrists,architecture-and-engineering,8,7,augment,7,6,restructure
+Chemists and materials scientists,life-physical-and-social-science,6,7,augment,6,5,resilient
+Childcare workers,personal-care-and-service,3,8,resilient,2,3,resilient
+Civil engineers,architecture-and-engineering,6,7,augment,5,6,resilient
+Compensation and benefits managers,management,7,3,replace,6,4,resilient
+"Compensation, benefits, and job analysis specialists",business-and-financial,7,3,replace,7,6,restructure
+Compliance officers,business-and-financial,7,4,replace,6,5,resilient
+Computer network architects,computer-and-information-technology,7,8,augment,7,6,restructure
+Computer programmers,computer-and-information-technology,9,8,augment,9,6,restructure
+Computer support specialists,computer-and-information-technology,8,3,replace,7,4,restructure
+Concierges,personal-care-and-service,6,3,restructure,4,3,resilient
+Construction and building inspectors,construction-and-extraction,5,2,resilient,3,3,resilient
+Construction equipment operators,construction-and-extraction,3,2,resilient,2,4,resilient
+Court reporters and simultaneous captioners,legal,8,3,replace,6,3,resilient
+Craft and fine artists,arts-and-design,7,8,augment,4,5,resilient
+Credit counselors,business-and-financial,7,6,restructure,6,5,resilient
+Dental and ophthalmic laboratory technicians and medical appliance technicians,production,6,3,restructure,5,4,resilient
+Dental assistants,healthcare,3,2,resilient,3,4,resilient
+Dentists,healthcare,4,6,resilient,3,4,resilient
+Diagnostic medical sonographers,healthcare,6,8,augment,4,5,resilient
+Dietitians and nutritionists,healthcare,6,7,augment,5,6,resilient
+Electricians,construction-and-extraction,3,6,resilient,3,4,resilient
+Electro-mechanical and mechatronics technologists and technicians,architecture-and-engineering,5,6,resilient,5,4,resilient
+EMTs and paramedics,healthcare,3,2,resilient,3,5,resilient
+Environmental engineers,architecture-and-engineering,6,7,augment,5,6,resilient
+Environmental scientists and specialists,life-physical-and-social-science,6,7,augment,5,6,resilient
+Fashion designers,arts-and-design,7,6,restructure,6,7,augment
+Financial examiners,business-and-financial,7,3,replace,7,5,restructure
+Firefighters,protective-service,2,1,resilient,2,3,resilient
+Food processing equipment workers,production,3,2,resilient,3,4,resilient
+Food service managers,management,4,3,resilient,5,5,resilient
+Forensic science technicians,life-physical-and-social-science,6,3,resilient,5,6,resilient
+Funeral service workers,personal-care-and-service,3,1,resilient,3,3,resilient
+Gambling services workers,personal-care-and-service,3,2,resilient,5,3,resilient
+Geographers,life-physical-and-social-science,7,4,replace,6,4,resilient
+Graphic designers,arts-and-design,8,6,restructure,8,7,augment
+Grounds maintenance workers,building-and-grounds-cleaning,2,6,resilient,1,3,resilient
+Health education specialists,community-and-social-service,6,8,augment,5,6,resilient
+Health information technologists and medical registrars,healthcare,8,3,replace,8,7,augment
+Heavy and tractor-trailer truck drivers,transportation-and-material-moving,6,3,resilient,3,3,resilient
+High school teachers,education-training-and-library,6,8,augment,6,5,resilient
+Human resources managers,management,7,4,replace,6,5,resilient
+Human resources specialists,business-and-financial,7,4,replace,6,5,resilient
+Industrial designers,arts-and-design,8,7,augment,7,6,restructure
+Industrial engineering technologists and technicians,architecture-and-engineering,7,5,restructure,6,5,resilient
+Industrial engineers,architecture-and-engineering,7,6,restructure,6,7,augment
+Industrial production managers,management,6,3,resilient,6,5,resilient
+Instructional coordinators,education-training-and-library,7,6,restructure,6,5,resilient
+Interior designers,arts-and-design,7,6,restructure,6,7,augment
+Janitors and building cleaners,building-and-grounds-cleaning,3,2,resilient,1,1,resilient
+Jewelers and precious stone and metal workers,production,5,4,resilient,3,2,resilient
+Kindergarten and elementary school teachers,education-training-and-library,6,8,augment,5,6,resilient
+Landscape architects,architecture-and-engineering,6,7,augment,5,5,resilient
+Lawyers,legal,7,4,replace,6,3,resilient
+Library technicians and assistants,education-training-and-library,7,2,replace,5,3,resilient
+Licensed practical and licensed vocational nurses,healthcare,4,8,resilient,4,5,resilient
+Loan officers,business-and-financial,7,3,replace,7,5,restructure
+Logisticians,business-and-financial,7,6,restructure,6,7,augment
+Management analysts,business-and-financial,8,7,augment,7,6,restructure
+Marine engineers and naval architects,architecture-and-engineering,7,5,restructure,6,5,resilient
+Marriage and family therapists,community-and-social-service,4,8,resilient,4,5,resilient
+Massage therapists,healthcare,2,7,resilient,1,3,resilient
+Materials engineers,architecture-and-engineering,6,7,augment,6,5,resilient
+Medical dosimetrists,healthcare,7,2,replace,6,4,resilient
+Medical equipment repairers,installation-maintenance-and-repair,4,3,resilient,4,5,resilient
+Microbiologists,life-physical-and-social-science,6,7,augment,6,5,resilient
+Models,sales,8,3,replace,4,3,resilient
+Music directors and composers,entertainment-and-sports,6,7,augment,6,5,resilient
+Musicians and singers,entertainment-and-sports,6,8,augment,5,7,resilient
+Network and computer systems administrators,computer-and-information-technology,7,3,replace,7,4,restructure
+"News analysts, reporters, and journalists",media-and-communication,8,4,replace,7,6,restructure
+Nursing assistants and orderlies,healthcare,3,8,resilient,3,4,resilient
+Occupational therapists,healthcare,4,8,resilient,3,6,resilient
+Occupational therapy assistants and aides,healthcare,3,8,resilient,3,5,resilient
+Opticians,healthcare,5,3,resilient,3,4,resilient
+Optometrists,healthcare,6,7,augment,4,5,resilient
+Pharmacists,healthcare,6,4,resilient,4,3,resilient
+Phlebotomists,healthcare,3,2,resilient,3,4,resilient
+Photographers,media-and-communication,7,6,restructure,6,5,resilient
+Physical therapist assistants and aides,healthcare,3,8,resilient,3,5,resilient
+Physician assistants,healthcare,6,8,resilient,4,6,resilient
+Physicians and surgeons,healthcare,5,8,resilient,5,4,resilient
+Physicists and astronomers,life-physical-and-social-science,7,6,restructure,6,5,resilient
+Political scientists,life-physical-and-social-science,7,4,replace,6,4,resilient
+Preschool teachers,education-training-and-library,4,8,resilient,3,5,resilient
+Private detectives and investigators,protective-service,6,4,restructure,5,5,resilient
+Property appraisers and assessors,business-and-financial,6,3,resilient,6,5,resilient
+"Property, real estate, and community association managers",management,5,3,resilient,5,5,resilient
+Psychiatric technicians and aides,healthcare,3,8,resilient,3,5,resilient
+Psychologists,life-physical-and-social-science,6,8,augment,5,6,resilient
+Public relations and fundraising managers,management,7,6,restructure,6,7,augment
+Public safety telecommunicators,office-and-administrative-support,6,2,resilient,6,4,resilient
+"Purchasing managers, buyers, and purchasing agents",business-and-financial,7,4,replace,6,5,resilient
+Quality control inspectors,production,6,2,replace,5,3,resilient
+Radiation therapists,healthcare,4,1,resilient,4,3,resilient
+Radiologic and MRI technologists,healthcare,6,2,resilient,4,3,resilient
+Real estate brokers and sales agents,sales,6,4,restructure,5,6,resilient
+Registered nurses,healthcare,5,8,resilient,5,6,resilient
+Rehabilitation counselors,community-and-social-service,5,7,resilient,4,3,resilient
+Respiratory therapists,healthcare,4,3,resilient,4,5,resilient
+Sales engineers,sales,7,6,restructure,6,7,augment
+Sales managers,management,6,5,resilient,6,7,augment
+School and career counselors and advisors,community-and-social-service,6,8,augment,5,6,resilient
+"Securities, commodities, and financial services sales agents",sales,7,4,replace,7,5,restructure
+Semiconductor processing technicians,production,4,8,resilient,5,6,resilient
+Set and exhibit designers,arts-and-design,7,6,restructure,6,5,resilient
+Social and human service assistants,community-and-social-service,4,8,resilient,4,6,resilient
+Social workers,community-and-social-service,4,8,resilient,4,6,resilient
+Sociologists,life-physical-and-social-science,7,6,restructure,6,5,resilient
+Special education teachers,education-training-and-library,4,8,resilient,4,5,resilient
+Speech-language pathologists,healthcare,5,8,resilient,4,6,resilient
+Surgical assistants and technologists,healthcare,3,2,resilient,3,4,resilient
+"Taxi drivers, shuttle drivers, and chauffeurs",transportation-and-material-moving,9,3,replace,3,5,resilient
+Teacher assistants,education-training-and-library,6,8,augment,4,3,resilient
+Top executives,management,6,3,resilient,6,5,resilient
+Training and development managers,management,7,6,restructure,6,7,augment
+"Transportation, storage, and distribution managers",management,6,4,resilient,6,7,augment
+Travel agents,sales,8,3,replace,7,4,restructure
+"Umpires, referees, and other sports officials",entertainment-and-sports,3,2,resilient,3,5,resilient
+Urban and regional planners,life-physical-and-social-science,7,4,replace,6,5,resilient
+Veterinarians,healthcare,5,7,resilient,4,5,resilient
+Wholesale and manufacturing sales representatives,sales,6,4,restructure,6,5,resilient
+Woodworkers,production,3,4,resilient,3,2,resilient
