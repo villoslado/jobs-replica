@@ -12,6 +12,38 @@ treemap.
 
 ---
 
+## Disclaimer
+
+This project is an experiment and should be interpreted as such.
+
+- **LLMs make mistakes.** Claude Sonnet and GPT-4o are general-purpose
+  language models, not labor economists. Their scores reflect patterns in
+  training data, not rigorous economic analysis. They can be wrong,
+  inconsistent, or biased in ways that are difficult to detect.
+- **This is not a forecast.** Nothing in this project predicts what will
+  happen to any occupation, worker, or industry. It is a structured way of
+  asking two AI models how they reason about AI's impact on work — nothing
+  more.
+- **The framework is a simplification.** Real labor market dynamics involve
+  regulatory environments, union protections, capital availability, adoption
+  timelines, social preferences, and macroeconomic conditions that no
+  two-dimensional scoring rubric can capture.
+- **The dollar figures are illustrative.** Fully-burdened compensation
+  figures represent labor cost associated with occupations in each category
+  — not a prediction of job losses, productivity gains, or vendor revenue.
+  They are a scale reference, not a forecast.
+- **Do not make decisions based on this.** This tool is not intended to
+  inform hiring, investment, policy, or career decisions. If you are
+  researching AI's impact on labor markets seriously, please consult
+  peer-reviewed economic research.
+- **Two models are better than one — but still not ground truth.** Using
+  Claude and GPT-4o independently and surfacing disagreements adds a layer
+  of robustness, but model agreement does not equal accuracy. Both models
+  share training data biases and may systematically over- or underestimate
+  AI's impact in certain domains.
+
+---
+
 ## What This Is
 
 This is a research and data exploration tool — not a report, paper, or
@@ -167,23 +199,6 @@ API keys required in `.env`:
 ANTHROPIC_API_KEY=your_anthropic_key
 OPENAI_API_KEY=your_openai_key
 ```
-
----
-
-## What This Is NOT
-
-- It does not predict that a job will disappear. A **replace** verdict means
-  AI is likely to absorb the core work and demand is unlikely to expand
-  enough to compensate — not that every person in that role will lose their
-  job overnight.
-- It does not account for regulatory barriers, union protections, or social
-  preferences for human workers in specific contexts.
-- The scores are LLM estimates, not econometric forecasts. Two models are
-  used precisely to surface uncertainty — where they agree, confidence is
-  higher; where they disagree, the occupation warrants closer examination.
-- The dollar figures represent fully-burdened labor cost *exposed* to AI
-  disruption — not a prediction of how much will be eliminated or captured
-  by AI vendors.
 
 ---
 
