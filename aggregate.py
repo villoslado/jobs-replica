@@ -93,7 +93,7 @@ def fmt_comp(n):
 
 def print_table(title, rows, val_key, fmt_fn, col_width=10):
     """Print a single-metric table."""
-    col_labels = ["Claude", "GPT-4o", "Average", "Karpathy"]
+    col_labels = ["Claude", "GPT-4o", "Average", "Karpathy (Gemini)"]
     label_w = 18
 
     header = f"{'':>{label_w}}  " + "  ".join(f"{c:>{col_width}}" for c in col_labels)
@@ -129,7 +129,7 @@ def build_csv_rows(rows, val_key, fmt_fn):
             "claude": fmt_fn(row[f"claude_{val_key}"]),
             "gpt4o": fmt_fn(row[f"openai_{val_key}"]),
             "average": fmt_fn(row[f"avg_{val_key}"]),
-            "karpathy": fmt_fn(row[f"karpathy_{val_key}"]),
+            "Karpathy (Gemini)": fmt_fn(row[f"karpathy_{val_key}"]),
         })
     return csv_rows
 
@@ -270,7 +270,7 @@ def main():
     print_table("Table 2 — Fully-burdened compensation", display_rows, "comp", fmt_comp)
 
     # Write CSVs
-    csv_fields = ["net_effect", "claude", "gpt4o", "average", "karpathy"]
+    csv_fields = ["net_effect", "claude", "gpt4o", "average", "Karpathy (Gemini)"]
 
     jobs_rows = build_csv_rows(display_rows, "jobs", fmt_jobs)
     with open("summary_jobs.csv", "w", newline="") as f:
