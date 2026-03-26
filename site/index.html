@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>US Job Market Visualizer</title>
+<title>How Exposed Is the US Job Market to AI — and What Kind of Exposure?</title>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg: #0a0a0f;
-  --bg2: #12121a;
+  --bg: #080d14;
+  --bg2: #0e1520;
   --fg: #e0e0e8;
   --fg2: #888894;
 }
@@ -202,6 +202,60 @@ canvas#canvas {
 #tooltip .tt-stats .label { color: var(--fg2); }
 #tooltip .tt-stats .value { color: var(--fg); text-align: right; }
 #tooltip .tt-rationale { font-size: 11px; color: var(--fg2); margin-top: 8px; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px; }
+
+/* Net effect summary dashboard */
+.net-dashboard {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.net-card {
+  background: var(--bg2);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px;
+  padding: 10px 14px;
+  flex: 1;
+  min-width: 170px;
+}
+.net-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.net-card-row {
+  display: grid;
+  grid-template-columns: 44px 1fr 1fr;
+  font-size: 11px;
+  gap: 1px 8px;
+  margin-bottom: 2px;
+}
+.net-card-model { color: var(--fg2); }
+.net-card-jobs { color: var(--fg); text-align: right; }
+.net-card-comp { color: var(--fg2); text-align: right; }
+
+/* Categorical legend for net effect / contested modes */
+.net-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 11px;
+  color: var(--fg2);
+}
+.net-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.net-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
 </style>
 </head>
 <body>
@@ -209,37 +263,11 @@ canvas#canvas {
 <div id="wrapper">
 <div id="header">
   <div class="intro">
-    <h1>US Job Market Visualizer <a href="https://github.com/karpathy/jobs">GitHub</a></h1>
-    <p>This is a research tool that visualizes <b>342 occupations</b> from the <a href="https://www.bls.gov/ooh/">Bureau of Labor Statistics Occupational Outlook Handbook</a>, covering <b>143M jobs</b> across the US economy. Each rectangle's <b>area</b> is proportional to total employment. <b>Color</b> shows the selected metric &mdash; toggle between BLS projected growth outlook, median pay, education requirements, and AI exposure. Click any tile to view its full BLS page. This is not a report, a paper, or a serious economic publication &mdash; it is a development tool for exploring BLS data visually.</p>
-    <p><b>LLM-powered coloring:</b> The <a href="https://github.com/karpathy/jobs">source code</a> includes scrapers, parsers, and a pipeline for writing custom LLM prompts to score and color occupations by any criteria. You write a prompt, the LLM scores each occupation, and the treemap colors accordingly. The "Digital AI Exposure" option is one example &mdash; it estimates how much current AI (which is primarily digital) will reshape each occupation. But you could write a different prompt for any question &mdash; e.g. exposure to humanoid robotics, offshoring risk, climate impact &mdash; and re-run the pipeline to get a different coloring.</p>
-    <details>
-      <summary>View the Digital AI Exposure scoring prompt (example)</summary>
-      <div class="prompt-box">You are an expert analyst evaluating how exposed different occupations are to AI. You will be given a detailed description of an occupation from the Bureau of Labor Statistics.
-
-Rate the occupation's overall AI Exposure on a scale from 0 to 10.
-
-AI Exposure measures: how much will AI reshape this occupation? Consider both direct effects (AI automating tasks currently done by humans) and indirect effects (AI making each worker so productive that fewer are needed).
-
-A key signal is whether the job's work product is fundamentally digital. If the job can be done entirely from a home office on a computer — writing, coding, analyzing, communicating — then AI exposure is inherently high (7+), because AI capabilities in digital domains are advancing rapidly. Even if today's AI can't handle every aspect of such a job, the trajectory is steep and the ceiling is very high. Conversely, jobs requiring physical presence, manual skill, or real-time human interaction in the physical world have a natural barrier to AI exposure.
-
-Use these anchors to calibrate your score:
-
-- 0–1: Minimal exposure. The work is almost entirely physical, hands-on, or requires real-time human presence in unpredictable environments. AI has essentially no impact on daily work. Examples: roofer, landscaper, commercial diver.
-
-- 2–3: Low exposure. Mostly physical or interpersonal work. AI might help with minor peripheral tasks (scheduling, paperwork) but doesn't touch the core job. Examples: electrician, plumber, firefighter, dental hygienist.
-
-- 4–5: Moderate exposure. A mix of physical/interpersonal work and knowledge work. AI can meaningfully assist with the information-processing parts but a substantial share of the job still requires human presence. Examples: registered nurse, police officer, veterinarian.
-
-- 6–7: High exposure. Predominantly knowledge work with some need for human judgment, relationships, or physical presence. AI tools are already useful and workers using AI may be substantially more productive. Examples: teacher, manager, accountant, journalist.
-
-- 8–9: Very high exposure. The job is almost entirely done on a computer. All core tasks — writing, coding, analyzing, designing, communicating — are in domains where AI is rapidly improving. The occupation faces major restructuring. Examples: software developer, graphic designer, translator, data analyst, paralegal, copywriter.
-
-- 10: Maximum exposure. Routine information processing, fully digital, with no physical component. AI can already do most of it today. Examples: data entry clerk, telemarketer.
-
-Respond with ONLY a JSON object in this exact format, no other text:
-{"exposure": &lt;0-10&gt;, "rationale": "&lt;2-3 sentences explaining the key factors&gt;"}</div>
-    </details>
-    <p><b>Caveat on Digital AI Exposure scores:</b> These are rough LLM estimates, not rigorous predictions. A high score does not predict the job will disappear. Software developers score 9/10 because AI is transforming their work &mdash; but demand for software could easily <em>grow</em> as each developer becomes more productive. The score does not account for demand elasticity, latent demand, regulatory barriers, or social preferences for human workers. Many high-exposure jobs will be reshaped, not replaced.</p>
+    <h1>How Exposed Is the US Job Market to AI — and What Kind of Exposure?</h1>
+    <p style="font-size:0.8em;color:var(--fg2);margin-top:-0.4em;margin-bottom:0.6em">By Gerardo Villoslado &middot; Built on <a href="https://github.com/karpathy/jobs">karpathy/jobs</a></p>
+    <p>This is a research tool that visualizes <b>342 occupations</b> from the <a href="https://www.bls.gov/ooh/">Bureau of Labor Statistics Occupational Outlook Handbook</a>, covering <b>143M jobs</b> across the US economy. Each rectangle's <b>area</b> is proportional to total employment. <b>Color</b> shows the selected metric &mdash; toggle between BLS projected growth outlook, median pay, education requirements, and AI net effect. Click any tile to view its full BLS page. This is not a report, a paper, or a serious economic publication &mdash; it is a development tool for exploring BLS data visually.</p>
+    <p><b>Two-model, two-axis scoring:</b> Each occupation is independently scored by <b>Claude Sonnet</b> and <b>GPT-4o</b> on two dimensions: <b>disruption</b> (0&ndash;10, how much AI reshapes the work) and <b>demand elasticity</b> (0&ndash;10, how much cheaper/better service expands demand). Combining these two axes yields a <b>net effect</b> category for each occupation: <span style="color:#e05555;font-weight:600;">replace</span> (high disruption, low elasticity), <span style="color:#e09955;font-weight:600;">restructure</span> (high disruption, moderate elasticity), <span style="color:#55aa77;font-weight:600;">augment</span> (high disruption, high elasticity), or <span style="color:#5588cc;font-weight:600;">resilient</span> (low disruption). Where the two models disagree, the occupation is flagged as <b>contested</b>.</p>
+    <p><b>Caveat:</b> These are rough LLM estimates, not rigorous predictions. Net effect categories reflect likely structural direction, not certainty. Many factors &mdash; regulation, social preferences, latent demand &mdash; are not captured. Treat scores as a starting point for thinking, not a forecast.</p>
   </div>
 
   <div class="controls-row">
@@ -249,13 +277,26 @@ Respond with ONLY a JSON object in this exact format, no other text:
         <button data-mode="outlook" class="active">BLS Outlook</button>
         <button data-mode="pay">Median Pay</button>
         <button data-mode="education">Education</button>
-        <button data-mode="exposure">Digital AI Exposure</button>
+        <button data-mode="claude_net">Claude &mdash; Net Effect</button>
+        <button data-mode="openai_net">GPT-4o &mdash; Net Effect</button>
+        <button data-mode="contested">Contested</button>
       </div>
     </div>
-    <div class="gradient-legend">
+    <div class="gradient-legend" id="gradientLegendWrap">
       <span id="legendLow">Declining</span>
       <canvas id="gradientLegend" width="80" height="8"></canvas>
       <span id="legendHigh">Growing</span>
+    </div>
+    <div class="net-legend" id="netLegendWrap" style="display:none;">
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#e05555;"></div> Replace</div>
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#e09955;"></div> Restructure</div>
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#55aa77;"></div> Augment</div>
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#5588cc;"></div> Resilient</div>
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#444;"></div> No score</div>
+    </div>
+    <div class="net-legend" id="contestedLegendWrap" style="display:none;">
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#ddaa33;"></div> Contested</div>
+      <div class="net-legend-item"><div class="net-legend-dot" style="background:#5588cc;"></div> Uncontested</div>
     </div>
   </div>
 
@@ -272,6 +313,8 @@ Respond with ONLY a JSON object in this exact format, no other text:
     <div class="stat-section" id="block7"></div>
     <div class="stat-section" id="block8"></div>
   </div>
+
+  <div class="net-dashboard" id="netDashboard"></div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -343,20 +386,46 @@ function exposureColor(v, a) {
   return greenRedCSS(v / 10, a);
 }
 
+const NET_EFFECT_COLORS = {
+  replace:     [224, 85,  85],
+  restructure: [224, 153, 85],
+  augment:     [85,  170, 119],
+  resilient:   [85,  136, 204],
+};
+
+function netEffectColor(effect, alpha) {
+  const rgb = NET_EFFECT_COLORS[effect];
+  if (!rgb) return `rgba(68,68,68,${alpha})`;
+  return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+}
+
+function isContested(d) {
+  return d.contested === true;
+}
+
+function contestedColor(d, alpha) {
+  return isContested(d) ? `rgba(221,170,51,${alpha})` : `rgba(85,136,204,${alpha})`;
+}
+
 function tileColorCSS(d, alpha) {
-  if (colorMode === "exposure") return exposureColor(d.exposure, alpha);
+  if (colorMode === "claude_net") return netEffectColor(d.claude_net_effect, alpha);
+  if (colorMode === "openai_net") return netEffectColor(d.openai_net_effect, alpha);
+  if (colorMode === "contested") return contestedColor(d, alpha);
   if (colorMode === "outlook") return outlookColor(d.outlook, alpha);
   if (colorMode === "pay") return payColor(d.pay, alpha);
-  if (colorMode === "education") {
-    return eduColor(EDU_LEVELS.indexOf(d.education), alpha);
-  }
+  if (colorMode === "education") return eduColor(EDU_LEVELS.indexOf(d.education), alpha);
   return `rgba(128,128,128,${alpha})`;
 }
 
 function tileSubInfo(r) {
-  if (colorMode === "exposure") {
-    return (r.exposure != null ? r.exposure + "/10" : "") +
-           (r.jobs ? " \u00b7 " + formatNumber(r.jobs) + " jobs" : "");
+  if (colorMode === "claude_net") {
+    return (r.claude_net_effect || "no score") + (r.jobs ? " \u00b7 " + formatNumber(r.jobs) + " jobs" : "");
+  }
+  if (colorMode === "openai_net") {
+    return (r.openai_net_effect || "no score") + (r.jobs ? " \u00b7 " + formatNumber(r.jobs) + " jobs" : "");
+  }
+  if (colorMode === "contested") {
+    return (isContested(r) ? "contested" : "uncontested") + (r.jobs ? " \u00b7 " + formatNumber(r.jobs) + " jobs" : "");
   }
   if (colorMode === "outlook") {
     const o = r.outlook != null ? (r.outlook > 0 ? "+" : "") + r.outlook + "%" : "";
@@ -514,13 +583,24 @@ function formatNumber(n) {
 function formatPay(n) { return n == null ? "\u2014" : "$" + n.toLocaleString(); }
 
 function tooltipHighlight(d) {
-  if (colorMode === "exposure") {
-    const v = d.exposure;
-    if (v == null) return "";
-    const color = exposureColor(v, 1);
-    return `<span style="color:${color};font-weight:600;">Digital AI Exposure: ${v}/10</span>` +
-      `<div style="margin-top:3px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;">` +
-      `<div style="height:100%;width:${v * 10}%;background:${color};border-radius:2px;"></div></div>`;
+  if (colorMode === "claude_net" || colorMode === "openai_net" || colorMode === "contested") {
+    const cColor = netEffectColor(d.claude_net_effect, 1);
+    const oColor = netEffectColor(d.openai_net_effect, 1);
+    const contested = isContested(d);
+    let html = `<div style="margin-bottom:5px;">`;
+    html += `<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--fg2);margin-bottom:2px;">Claude Sonnet</div>`;
+    html += `<div style="font-size:12px;"><span style="color:${cColor};font-weight:600;">${d.claude_net_effect || '\u2014'}</span>`;
+    if (d.claude_disruption != null) html += ` &middot; disruption <b>${d.claude_disruption}/10</b>`;
+    if (d.claude_elasticity != null) html += ` &middot; elasticity <b>${d.claude_elasticity}/10</b>`;
+    html += `</div></div>`;
+    html += `<div>`;
+    html += `<div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--fg2);margin-bottom:2px;">GPT-4o</div>`;
+    html += `<div style="font-size:12px;"><span style="color:${oColor};font-weight:600;">${d.openai_net_effect || '\u2014'}</span>`;
+    if (d.openai_disruption != null) html += ` &middot; disruption <b>${d.openai_disruption}/10</b>`;
+    if (d.openai_elasticity != null) html += ` &middot; elasticity <b>${d.openai_elasticity}/10</b>`;
+    html += `</div></div>`;
+    if (contested) html += `<div style="margin-top:5px;font-size:11px;color:#ddaa33;font-weight:600;">&#9873; Contested</div>`;
+    return html;
   } else if (colorMode === "outlook") {
     const v = d.outlook;
     if (v == null) return "";
@@ -554,7 +634,15 @@ function showTooltip(d, mx, my) {
     <span class="label">Jobs (2024)</span><span class="value">${formatNumber(d.jobs)}</span>
     <span class="label">Outlook</span><span class="value">${d.outlook != null ? d.outlook + '%' : '\u2014'} ${d.outlook_desc ? '(' + d.outlook_desc + ')' : ''}</span>
     <span class="label">Education</span><span class="value">${d.education || '\u2014'}</span>`;
-  tt.querySelector(".tt-rationale").textContent = colorMode === "exposure" ? (d.exposure_rationale || "") : "";
+  const ttRationale = tt.querySelector(".tt-rationale");
+  if (colorMode === "claude_net" || colorMode === "openai_net" || colorMode === "contested") {
+    let rHtml = "";
+    if (d.claude_rationale) rHtml += `<div style="margin-bottom:5px;"><span style="color:var(--fg2);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">Claude</span><div style="margin-top:2px;">${d.claude_rationale}</div></div>`;
+    if (d.openai_rationale) rHtml += `<div><span style="color:var(--fg2);font-size:10px;text-transform:uppercase;letter-spacing:0.05em;">GPT-4o</span><div style="margin-top:2px;">${d.openai_rationale}</div></div>`;
+    ttRationale.innerHTML = rHtml;
+  } else {
+    ttRationale.textContent = "";
+  }
   let tx = mx + 16, ty = my - 16;
   if (tx + 340 > window.innerWidth) tx = mx - 356;
   if (ty < 10) ty = my + 16;
@@ -629,7 +717,8 @@ function updateStats() {
   if (colorMode === "outlook") updateOutlookStats(totalJobs);
   else if (colorMode === "pay") updatePayStats(totalJobs);
   else if (colorMode === "education") updateEducationStats(totalJobs);
-  else updateExposureStats(totalJobs);
+  else if (colorMode === "claude_net" || colorMode === "openai_net" || colorMode === "contested") updateNetEffectStats(totalJobs);
+  else { for (let i = 2; i <= 8; i++) document.getElementById("block" + i).innerHTML = ""; }
 }
 
 function updateOutlookStats(totalJobs) {
@@ -846,6 +935,100 @@ function updateExposureStats(totalJobs) {
   document.getElementById("block8").innerHTML = "";
 }
 
+function updateNetEffectStats(totalJobs) {
+  const NET_CATS = ['replace', 'restructure', 'augment', 'resilient'];
+  const modelKey = colorMode === "openai_net" ? "openai" : "claude";
+  const modelLabel = colorMode === "openai_net" ? "GPT-4o" : "Claude";
+
+  // block2: jobs in "replace" category
+  let replaceJobs = 0;
+  for (const d of data) { if (d[modelKey + "_net_effect"] === "replace" && d.jobs) replaceJobs += d.jobs; }
+  document.getElementById("block2").innerHTML = `<h3>Replace (${modelLabel})</h3>
+    <div class="stat-big" style="color:#e05555">${(replaceJobs / 1e6).toFixed(1)}M</div>
+    <div class="stat-label">jobs at risk of replacement</div>`;
+
+  // block3: net effect tier bar
+  const tiers = NET_CATS.map(cat => {
+    let jobs = 0;
+    for (const d of data) { if (d[modelKey + "_net_effect"] === cat && d.jobs) jobs += d.jobs; }
+    return { label: cat.charAt(0).toUpperCase() + cat.slice(1), jobs, color: netEffectColor(cat, 1) };
+  });
+  document.getElementById("block3").innerHTML = `<h3>By category</h3><div class="tier-bar">${renderTiers(tiers, totalJobs)}</div>`;
+
+  // block4: avg disruption & elasticity
+  let dS = 0, dC = 0, eS = 0, eC = 0;
+  for (const d of data) {
+    const dis = d[modelKey + "_disruption"], ela = d[modelKey + "_elasticity"];
+    if (dis != null && d.jobs) { dS += dis * d.jobs; dC += d.jobs; }
+    if (ela != null && d.jobs) { eS += ela * d.jobs; eC += d.jobs; }
+  }
+  const avgDis = dC > 0 ? dS / dC : 0, avgEla = eC > 0 ? eS / eC : 0;
+  document.getElementById("block4").innerHTML = `<h3>Avg. scores (${modelLabel})</h3>
+    <div class="hbar-chart">
+      <div class="hbar-row"><span class="hbar-label">Disruption</span><div class="hbar-track"><div class="hbar-fill" style="width:${avgDis*10}%;background:#e09955"></div></div><span class="hbar-val">${avgDis.toFixed(1)}</span></div>
+      <div class="hbar-row"><span class="hbar-label">Elasticity</span><div class="hbar-track"><div class="hbar-fill" style="width:${avgEla*10}%;background:#5588cc"></div></div><span class="hbar-val">${avgEla.toFixed(1)}</span></div>
+    </div>`;
+
+  // block5: contested jobs
+  let contestedJobs = 0, contestedCount = 0;
+  for (const d of data) { if (isContested(d)) { contestedJobs += d.jobs || 0; contestedCount++; } }
+  document.getElementById("block5").innerHTML = `<h3>Contested jobs</h3>
+    <div class="stat-big" style="color:#ddaa33">${(contestedJobs / 1e6).toFixed(1)}M</div>
+    <div class="stat-label">${contestedCount} occupations, models disagree</div>`;
+
+  // block6: resilient jobs
+  let resilientJobs = 0;
+  for (const d of data) { if (d[modelKey + "_net_effect"] === "resilient" && d.jobs) resilientJobs += d.jobs; }
+  document.getElementById("block6").innerHTML = `<h3>Resilient (${modelLabel})</h3>
+    <div class="stat-big" style="color:#5588cc">${(resilientJobs / 1e6).toFixed(1)}M</div>
+    <div class="stat-label">jobs, low disruption</div>`;
+
+  document.getElementById("block7").innerHTML = "";
+  document.getElementById("block8").innerHTML = "";
+}
+
+function buildNetDashboard() {
+  const NET_CATS = [
+    { key: 'resilient',   label: 'Resilient',   color: '#5588cc' },
+    { key: 'augment',     label: 'Augment',      color: '#55aa77' },
+    { key: 'restructure', label: 'Restructure',  color: '#e09955' },
+    { key: 'replace',     label: 'Replace',      color: '#e05555' },
+  ];
+  function formatComp(n) {
+    if (n >= 1e12) return "$" + (n / 1e12).toFixed(1) + "T";
+    if (n >= 1e9) return "$" + Math.round(n / 1e9) + "B";
+    return "$" + Math.round(n / 1e6) + "M";
+  }
+  const cards = NET_CATS.map(cat => {
+    let cJobs = 0, cComp = 0, oJobs = 0, oComp = 0;
+    for (const d of data) {
+      if (d.claude_net_effect === cat.key) { cJobs += d.jobs || 0; cComp += d.burdened_comp || 0; }
+      if (d.openai_net_effect === cat.key) { oJobs += d.jobs || 0; oComp += d.burdened_comp || 0; }
+    }
+    const avgJobs = (cJobs + oJobs) / 2;
+    const avgComp = (cComp + oComp) / 2;
+    return `<div class="net-card" style="border-top:2px solid ${cat.color};">
+      <div class="net-card-title" style="color:${cat.color};">${cat.label}</div>
+      <div class="net-card-row">
+        <span class="net-card-model">Claude</span>
+        <span class="net-card-jobs">${formatNumber(cJobs)}</span>
+        <span class="net-card-comp">${formatComp(cComp)}</span>
+      </div>
+      <div class="net-card-row">
+        <span class="net-card-model">GPT-4o</span>
+        <span class="net-card-jobs">${formatNumber(oJobs)}</span>
+        <span class="net-card-comp">${formatComp(oComp)}</span>
+      </div>
+      <div class="net-card-row" style="border-top:1px solid rgba(255,255,255,0.06);margin-top:3px;padding-top:3px;">
+        <span class="net-card-model" style="color:var(--fg);">Avg</span>
+        <span class="net-card-jobs">${formatNumber(avgJobs)}</span>
+        <span class="net-card-comp">${formatComp(avgComp)}</span>
+      </div>
+    </div>`;
+  }).join("");
+  document.getElementById("netDashboard").innerHTML = cards;
+}
+
 // ── Events ─────────────────────────────────────────────────────────────
 
 canvas.addEventListener("mousemove", (e) => {
@@ -861,23 +1044,27 @@ function resize() { dpr = window.devicePixelRatio || 1; layout(); draw(); }
 // ── Legend gradient ────────────────────────────────────────────────────
 
 const LEGEND_CONFIG = {
-  exposure:  { low: "Low", high: "High" },
   outlook:   { low: "Declining", high: "Growing" },
   pay:       { low: "$25K", high: "$250K" },
   education: { low: "No degree", high: "Doctoral" },
 };
 
 function drawGradientLegend() {
-  const c = document.getElementById("gradientLegend");
-  const gctx = c.getContext("2d");
-  for (let x = 0; x < 80; x++) {
-    const t = x / 79;
-    gctx.fillStyle = colorMode === "exposure" ? greenRedCSS(t, 1) : greenRedCSS(1 - t, 1);
-    gctx.fillRect(x, 0, 1, 8);
+  const isNetMode = colorMode === "claude_net" || colorMode === "openai_net" || colorMode === "contested";
+  document.getElementById("gradientLegendWrap").style.display = isNetMode ? "none" : "";
+  document.getElementById("netLegendWrap").style.display = (colorMode === "claude_net" || colorMode === "openai_net") ? "flex" : "none";
+  document.getElementById("contestedLegendWrap").style.display = colorMode === "contested" ? "flex" : "none";
+  if (!isNetMode) {
+    const c = document.getElementById("gradientLegend");
+    const gctx = c.getContext("2d");
+    for (let x = 0; x < 80; x++) {
+      gctx.fillStyle = greenRedCSS(1 - x / 79, 1);
+      gctx.fillRect(x, 0, 1, 8);
+    }
+    const cfg = LEGEND_CONFIG[colorMode] || { low: "", high: "" };
+    document.getElementById("legendLow").textContent = cfg.low;
+    document.getElementById("legendHigh").textContent = cfg.high;
   }
-  const cfg = LEGEND_CONFIG[colorMode];
-  document.getElementById("legendLow").textContent = cfg.low;
-  document.getElementById("legendHigh").textContent = cfg.high;
 }
 
 // ── Layer toggle ─────────────────────────────────────────────────────
@@ -901,6 +1088,7 @@ fetch("data.json")
   .then(r => r.json())
   .then(d => {
     data = d;
+    buildNetDashboard();
     updateStats();
     drawGradientLegend();
     resize();
