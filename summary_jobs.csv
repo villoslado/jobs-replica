@@ -1,0 +1,7 @@
+net_effect,claude,gpt4o,average,karpathy
+Resilient,88.0M,100.8M,94.4M,94.0M
+Total Exposed,55.1M,42.2M,48.7M,49.0M
+Augment,18.0M,12.7M,15.3M,N/A
+Restructure,9.5M,8.8M,9.2M,N/A
+Replace,27.6M,20.7M,24.2M,N/A
+Total,143.1M,143.1M,143.1M,143.0M

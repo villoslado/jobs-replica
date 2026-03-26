@@ -2,8 +2,9 @@
 Aggregate site/data.json into summary statistics and a contested list.
 
 Outputs:
-  summary.csv   — job counts and burdened comp by net_effect category per model
-  contested.csv — occupations where claude and openai disagree
+  summary_jobs.csv  — job counts by net_effect category per model (millions)
+  summary_comp.csv  — burdened comp by net_effect category per model (trillions)
+  contested.csv     — occupations where claude and openai disagree
 
 Usage:
     uv run python aggregate.py
@@ -76,6 +77,63 @@ def load_karpathy():
     return totals
 
 
+def fmt_jobs(n):
+    """Format jobs value in millions, 1 decimal place."""
+    if n is None:
+        return "N/A"
+    return f"{n / 1e6:.1f}M"
+
+
+def fmt_comp(n):
+    """Format comp value in trillions, 2 decimal places."""
+    if n is None:
+        return "N/A"
+    return f"{n / 1e12:.2f}T"
+
+
+def print_table(title, rows, val_key, fmt_fn, col_width=10):
+    """Print a single-metric table."""
+    col_labels = ["Claude", "GPT-4o", "Average", "Karpathy"]
+    label_w = 18
+
+    header = f"{'':>{label_w}}  " + "  ".join(f"{c:>{col_width}}" for c in col_labels)
+    sep = "-" * len(header)
+    thick = "=" * len(header)
+
+    print(f"\n{title}")
+    print(sep)
+    print(header)
+    print(sep)
+
+    for row in rows:
+        label = row["label"]
+        vals = [
+            fmt_fn(row[f"claude_{val_key}"]),
+            fmt_fn(row[f"openai_{val_key}"]),
+            fmt_fn(row[f"avg_{val_key}"]),
+            fmt_fn(row[f"karpathy_{val_key}"]),
+        ]
+        if row.get("is_total"):
+            print(thick)
+        elif row.get("is_separator"):
+            print(sep)
+        print(f"{label:<{label_w}}  " + "  ".join(f"{v:>{col_width}}" for v in vals))
+
+
+def build_csv_rows(rows, val_key, fmt_fn):
+    """Build list of dicts for CSV output."""
+    csv_rows = []
+    for row in rows:
+        csv_rows.append({
+            "net_effect": row["label"].strip(),
+            "claude": fmt_fn(row[f"claude_{val_key}"]),
+            "gpt4o": fmt_fn(row[f"openai_{val_key}"]),
+            "average": fmt_fn(row[f"avg_{val_key}"]),
+            "karpathy": fmt_fn(row[f"karpathy_{val_key}"]),
+        })
+    return csv_rows
+
+
 def main():
     with open("site/data.json") as f:
         data = json.load(f)
@@ -97,126 +155,139 @@ def main():
                 totals[model][net]["jobs"] += jobs
                 totals[model][net]["comp"] += comp
 
-    # Build per-category rows (replace / restructure / augment / resilient)
-    summary_rows = []
-    for cat in CATEGORIES:
-        c = totals["claude"][cat]
-        o = totals["openai"][cat]
-        avg_jobs = (c["jobs"] + o["jobs"]) // 2
-        avg_comp = (c["comp"] + o["comp"]) // 2
-        # Karpathy doesn't split into these sub-buckets
-        summary_rows.append({
-            "net_effect": cat,
-            "claude_jobs": c["jobs"],
-            "claude_burdened_comp": c["comp"],
-            "openai_jobs": o["jobs"],
-            "openai_burdened_comp": o["comp"],
-            "avg_jobs": avg_jobs,
-            "avg_burdened_comp": avg_comp,
-            "karpathy_jobs": "",
-            "karpathy_burdened_comp": "",
-        })
+    def avg(model_a, model_b, cat, key):
+        return (totals[model_a][cat][key] + totals[model_b][cat][key]) // 2
 
-    # total_exposed row: replace + restructure + augment for claude/openai; high_exposure for Karpathy
-    exposed_cats = ["replace", "restructure", "augment"]
+    exposed_cats = ["augment", "restructure", "replace"]
 
-    def sum_cat(model, key):
+    def sum_exposed(model, key):
         return sum(totals[model][cat][key] for cat in exposed_cats)
 
-    c_exp_jobs = sum_cat("claude", "jobs")
-    c_exp_comp = sum_cat("claude", "comp")
-    o_exp_jobs = sum_cat("openai", "jobs")
-    o_exp_comp = sum_cat("openai", "comp")
-    summary_rows.append({
-        "net_effect": "total_exposed",
-        "claude_jobs": c_exp_jobs,
-        "claude_burdened_comp": c_exp_comp,
-        "openai_jobs": o_exp_jobs,
-        "openai_burdened_comp": o_exp_comp,
-        "avg_jobs": (c_exp_jobs + o_exp_jobs) // 2,
-        "avg_burdened_comp": (c_exp_comp + o_exp_comp) // 2,
-        "karpathy_jobs": karp["high_exposure"]["jobs"],
-        "karpathy_burdened_comp": karp["high_exposure"]["comp"],
-    })
+    c_exp_jobs = sum_exposed("claude", "jobs")
+    c_exp_comp = sum_exposed("claude", "comp")
+    o_exp_jobs = sum_exposed("openai", "jobs")
+    o_exp_comp = sum_exposed("openai", "comp")
 
-    # Populate resilient row's Karpathy numbers
-    for row in summary_rows:
-        if row["net_effect"] == "resilient":
-            row["karpathy_jobs"] = karp["low_exposure"]["jobs"]
-            row["karpathy_burdened_comp"] = karp["low_exposure"]["comp"]
-
-    # Grand total row — exclude total_exposed to avoid double-counting
-    def col_sum(key):
-        return sum(r[key] for r in summary_rows if isinstance(r[key], int) and r["net_effect"] != "total_exposed")
-
+    # Grand total (resilient + exposed sub-cats, no double-counting total_exposed)
+    c_total_jobs = totals["claude"]["resilient"]["jobs"] + c_exp_jobs
+    c_total_comp = totals["claude"]["resilient"]["comp"] + c_exp_comp
+    o_total_jobs = totals["openai"]["resilient"]["jobs"] + o_exp_jobs
+    o_total_comp = totals["openai"]["resilient"]["comp"] + o_exp_comp
     karp_total_jobs = karp["high_exposure"]["jobs"] + karp["low_exposure"]["jobs"]
     karp_total_comp = karp["high_exposure"]["comp"] + karp["low_exposure"]["comp"]
-    summary_rows.append({
-        "net_effect": "Total",
-        "claude_jobs": col_sum("claude_jobs"),
-        "claude_burdened_comp": col_sum("claude_burdened_comp"),
-        "openai_jobs": col_sum("openai_jobs"),
-        "openai_burdened_comp": col_sum("openai_burdened_comp"),
-        "avg_jobs": col_sum("avg_jobs"),
-        "avg_burdened_comp": col_sum("avg_burdened_comp"),
-        "karpathy_jobs": karp_total_jobs,
-        "karpathy_burdened_comp": karp_total_comp,
-    })
 
-    # Write summary.csv
-    fieldnames = [
-        "net_effect",
-        "claude_jobs", "claude_burdened_comp",
-        "openai_jobs", "openai_burdened_comp",
-        "avg_jobs", "avg_burdened_comp",
-        "karpathy_jobs", "karpathy_burdened_comp",
+    # Display row order:
+    # 1. Resilient
+    # 2. Total Exposed  (separator before)
+    # 3.   Augment      (indented, Karpathy N/A)
+    # 4.   Restructure  (indented, Karpathy N/A)
+    # 5.   Replace      (indented, Karpathy N/A)
+    # 6. Total          (thick separator before)
+
+    display_rows = [
+        {
+            "label": "Resilient",
+            "claude_jobs": totals["claude"]["resilient"]["jobs"],
+            "openai_jobs": totals["openai"]["resilient"]["jobs"],
+            "avg_jobs": avg("claude", "openai", "resilient", "jobs"),
+            "karpathy_jobs": karp["low_exposure"]["jobs"],
+            "claude_comp": totals["claude"]["resilient"]["comp"],
+            "openai_comp": totals["openai"]["resilient"]["comp"],
+            "avg_comp": avg("claude", "openai", "resilient", "comp"),
+            "karpathy_comp": karp["low_exposure"]["comp"],
+            "is_separator": False,
+            "is_total": False,
+        },
+        {
+            "label": "Total Exposed",
+            "claude_jobs": c_exp_jobs,
+            "openai_jobs": o_exp_jobs,
+            "avg_jobs": (c_exp_jobs + o_exp_jobs) // 2,
+            "karpathy_jobs": karp["high_exposure"]["jobs"],
+            "claude_comp": c_exp_comp,
+            "openai_comp": o_exp_comp,
+            "avg_comp": (c_exp_comp + o_exp_comp) // 2,
+            "karpathy_comp": karp["high_exposure"]["comp"],
+            "is_separator": True,
+            "is_total": False,
+        },
+        {
+            "label": "  Augment",
+            "claude_jobs": totals["claude"]["augment"]["jobs"],
+            "openai_jobs": totals["openai"]["augment"]["jobs"],
+            "avg_jobs": avg("claude", "openai", "augment", "jobs"),
+            "karpathy_jobs": None,
+            "claude_comp": totals["claude"]["augment"]["comp"],
+            "openai_comp": totals["openai"]["augment"]["comp"],
+            "avg_comp": avg("claude", "openai", "augment", "comp"),
+            "karpathy_comp": None,
+            "is_separator": False,
+            "is_total": False,
+        },
+        {
+            "label": "  Restructure",
+            "claude_jobs": totals["claude"]["restructure"]["jobs"],
+            "openai_jobs": totals["openai"]["restructure"]["jobs"],
+            "avg_jobs": avg("claude", "openai", "restructure", "jobs"),
+            "karpathy_jobs": None,
+            "claude_comp": totals["claude"]["restructure"]["comp"],
+            "openai_comp": totals["openai"]["restructure"]["comp"],
+            "avg_comp": avg("claude", "openai", "restructure", "comp"),
+            "karpathy_comp": None,
+            "is_separator": False,
+            "is_total": False,
+        },
+        {
+            "label": "  Replace",
+            "claude_jobs": totals["claude"]["replace"]["jobs"],
+            "openai_jobs": totals["openai"]["replace"]["jobs"],
+            "avg_jobs": avg("claude", "openai", "replace", "jobs"),
+            "karpathy_jobs": None,
+            "claude_comp": totals["claude"]["replace"]["comp"],
+            "openai_comp": totals["openai"]["replace"]["comp"],
+            "avg_comp": avg("claude", "openai", "replace", "comp"),
+            "karpathy_comp": None,
+            "is_separator": False,
+            "is_total": False,
+        },
+        {
+            "label": "Total",
+            "claude_jobs": c_total_jobs,
+            "openai_jobs": o_total_jobs,
+            "avg_jobs": (c_total_jobs + o_total_jobs) // 2,
+            "karpathy_jobs": karp_total_jobs,
+            "claude_comp": c_total_comp,
+            "openai_comp": o_total_comp,
+            "avg_comp": (c_total_comp + o_total_comp) // 2,
+            "karpathy_comp": karp_total_comp,
+            "is_separator": False,
+            "is_total": True,
+        },
     ]
-    with open("summary.csv", "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+    # Print tables
+    print_table("Table 1 — Jobs", display_rows, "jobs", fmt_jobs)
+    print_table("Table 2 — Fully-burdened compensation", display_rows, "comp", fmt_comp)
+
+    # Write CSVs
+    csv_fields = ["net_effect", "claude", "gpt4o", "average", "karpathy"]
+
+    jobs_rows = build_csv_rows(display_rows, "jobs", fmt_jobs)
+    with open("summary_jobs.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=csv_fields)
         writer.writeheader()
-        writer.writerows(summary_rows)
-    print("Wrote summary.csv")
+        writer.writerows(jobs_rows)
+    print("\nWrote summary_jobs.csv")
 
-    # Print table to console
-    def fmt_jobs(n):
-        if n == "" or n is None:
-            return f"{'N/A':>12}"
-        return f"{n:>12,}"
-
-    def fmt_comp(n):
-        if n == "" or n is None:
-            return f"{'N/A':>10}"
-        return f"${n / 1e12:>8.2f}T" if n >= 1e12 else f"${n / 1e9:>8.1f}B"
-
-    header = (
-        f"{'net_effect':<14}  {'claude_jobs':>12}  {'claude_comp':>10}  "
-        f"{'openai_jobs':>12}  {'openai_comp':>10}  {'avg_jobs':>12}  {'avg_comp':>10}  "
-        f"{'karpathy_jobs':>13}  {'karpathy_comp':>13}"
-    )
-    print()
-    print(header)
-    print("-" * len(header))
-    for row in summary_rows:
-        if row["net_effect"] == "Total":
-            print("=" * len(header))
-        elif row["net_effect"] == "total_exposed":
-            print("-" * len(header))
-        print(
-            f"{row['net_effect']:<14}  "
-            f"{fmt_jobs(row['claude_jobs'])}  "
-            f"{fmt_comp(row['claude_burdened_comp']):>10}  "
-            f"{fmt_jobs(row['openai_jobs'])}  "
-            f"{fmt_comp(row['openai_burdened_comp']):>10}  "
-            f"{fmt_jobs(row['avg_jobs'])}  "
-            f"{fmt_comp(row['avg_burdened_comp']):>10}  "
-            f"{fmt_jobs(row['karpathy_jobs']):>13}  "
-            f"{fmt_comp(row['karpathy_burdened_comp']):>13}"
-        )
+    comp_rows = build_csv_rows(display_rows, "comp", fmt_comp)
+    with open("summary_comp.csv", "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=csv_fields)
+        writer.writeheader()
+        writer.writerows(comp_rows)
+    print("Wrote summary_comp.csv")
 
     # Write contested.csv
-    contested = [
-        occ for occ in data if occ.get("contested")
-    ]
+    contested = [occ for occ in data if occ.get("contested")]
     contested_fields = [
         "title", "category",
         "claude_disruption", "claude_elasticity", "claude_net_effect",
@@ -226,7 +297,7 @@ def main():
         writer = csv.DictWriter(f, fieldnames=contested_fields, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(contested)
-    print(f"\nWrote contested.csv ({len(contested)} occupations)")
+    print(f"Wrote contested.csv ({len(contested)} occupations)")
 
 
 if __name__ == "__main__":
