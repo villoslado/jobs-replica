@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>How Exposed Is the US Job Market to AI — and What Kind of Exposure?</title>
+<title>How Exposed Is the US Job Market to AI - and What Kind of Exposure?</title>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -235,6 +235,29 @@ canvas#canvas {
 .net-card-model { color: var(--fg2); }
 .net-card-jobs { color: var(--fg); text-align: right; }
 .net-card-comp { color: var(--fg2); text-align: right; }
+.net-card-desc {
+  font-size: 10px;
+  color: var(--fg2);
+  margin-bottom: 5px;
+  line-height: 1.3;
+  font-style: italic;
+}
+.net-card-col-hdr {
+  font-size: 10px;
+  color: var(--fg2);
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.net-total-row {
+  width: 100%;
+  padding: 7px 14px;
+  font-size: 12px;
+  color: var(--fg2);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  margin-top: 2px;
+  text-align: center;
+}
 
 /* Categorical legend for net effect / contested modes */
 .net-legend {
@@ -263,8 +286,8 @@ canvas#canvas {
 <div id="wrapper">
 <div id="header">
   <div class="intro">
-    <h1>How Exposed Is the US Job Market to AI — and What Kind of Exposure?</h1>
-    <p style="font-size:0.8em;color:var(--fg2);margin-top:-0.4em;margin-bottom:0.6em">By Gerardo Villoslado &middot; Built on <a href="https://github.com/karpathy/jobs">karpathy/jobs</a></p>
+    <h1>How Exposed Is the US Job Market to AI - and What Kind of Exposure?</h1>
+    <p style="font-size:0.8em;color:var(--fg2);margin-top:-0.4em;margin-bottom:0.6em">By <a href="https://www.linkedin.com/in/villoslado" target="_blank" style="color:var(--fg2);text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Gerardo Villoslado</a> &middot; Built on <a href="https://github.com/karpathy/jobs">karpathy/jobs</a></p>
     <p>This is a research tool that visualizes <b>342 occupations</b> from the <a href="https://www.bls.gov/ooh/">Bureau of Labor Statistics Occupational Outlook Handbook</a>, covering <b>143M jobs</b> across the US economy. Each rectangle's <b>area</b> is proportional to total employment. <b>Color</b> shows the selected metric &mdash; toggle between BLS projected growth outlook, median pay, education requirements, and AI net effect. Click any tile to view its full BLS page. This is not a report, a paper, or a serious economic publication &mdash; it is a development tool for exploring BLS data visually.</p>
     <p><b>Two-model, two-axis scoring:</b> Each occupation is independently scored by <b>Claude Sonnet</b> and <b>GPT-4o</b> on two dimensions: <b>disruption</b> (0&ndash;10, how much AI reshapes the work) and <b>demand elasticity</b> (0&ndash;10, how much cheaper/better service expands demand). Combining these two axes yields a <b>net effect</b> category for each occupation: <span style="color:#e05555;font-weight:600;">replace</span> (high disruption, low elasticity), <span style="color:#e09955;font-weight:600;">restructure</span> (high disruption, moderate elasticity), <span style="color:#55aa77;font-weight:600;">augment</span> (high disruption, high elasticity), or <span style="color:#5588cc;font-weight:600;">resilient</span> (low disruption). Where the two models disagree, the occupation is flagged as <b>contested</b>.</p>
     <p><b>Caveat:</b> These are rough LLM estimates, not rigorous predictions. Net effect categories reflect likely structural direction, not certainty. Many factors &mdash; regulation, social preferences, latent demand &mdash; are not captured. Treat scores as a starting point for thinking, not a forecast.</p>
@@ -823,13 +846,19 @@ function updatePayStats(totalJobs) {
     color: payColor(g.avg, 0.8)
   })))}</div>`;
 
-  // Impact: total wages
-  let totalWages = 0;
-  for (const d of data) { if (d.pay != null && d.jobs) totalWages += d.pay * d.jobs; }
+  // Impact: total wages + fully-burdened
+  let totalWages = 0, totalBurdenedComp = 0;
+  for (const d of data) {
+    if (d.pay != null && d.jobs) totalWages += d.pay * d.jobs;
+    if (d.burdened_comp) totalBurdenedComp += d.burdened_comp;
+  }
   document.getElementById("block7").innerHTML = `<h3>Total wages</h3>
     <div class="stat-big">$${(totalWages / 1e12).toFixed(1)}T</div>
     <div class="stat-label">annual</div>`;
-  document.getElementById("block8").innerHTML = "";
+  document.getElementById("block8").innerHTML = `<h3>Fully-burdened</h3>
+    <div class="stat-big">$${(totalBurdenedComp / 1e12).toFixed(1)}T</div>
+    <div class="stat-label">annual</div>
+    <div class="stat-label" style="font-size:10px;max-width:160px;line-height:1.4;margin-top:2px;">incl. benefits, payroll taxes, retirement (BLS ECEC Dec 2025)</div>`;
 }
 
 function updateEducationStats(totalJobs) {
@@ -989,16 +1018,19 @@ function updateNetEffectStats(totalJobs) {
 
 function buildNetDashboard() {
   const NET_CATS = [
-    { key: 'resilient',   label: 'Resilient',   color: '#5588cc' },
-    { key: 'augment',     label: 'Augment',      color: '#55aa77' },
-    { key: 'restructure', label: 'Restructure',  color: '#e09955' },
-    { key: 'replace',     label: 'Replace',      color: '#e05555' },
+    { key: 'resilient',   label: 'Resilient',   color: '#5588cc', desc: 'AI touches periphery \u2014 core work unchanged' },
+    { key: 'augment',     label: 'Augment',      color: '#55aa77', desc: 'Productivity gains absorbed by expanding demand' },
+    { key: 'restructure', label: 'Restructure',  color: '#e09955', desc: 'Role survives \u2014 skills must shift substantially' },
+    { key: 'replace',     label: 'Replace',      color: '#e05555', desc: 'AI absorbs core work \u2014 headcount contracts' },
   ];
   function formatComp(n) {
     if (n >= 1e12) return "$" + (n / 1e12).toFixed(1) + "T";
     if (n >= 1e9) return "$" + Math.round(n / 1e9) + "B";
     return "$" + Math.round(n / 1e6) + "M";
   }
+  let totalJobs = 0, totalBurdenedComp = 0;
+  for (const d of data) { totalJobs += d.jobs || 0; totalBurdenedComp += d.burdened_comp || 0; }
+
   const cards = NET_CATS.map(cat => {
     let cJobs = 0, cComp = 0, oJobs = 0, oComp = 0;
     for (const d of data) {
@@ -1009,6 +1041,12 @@ function buildNetDashboard() {
     const avgComp = (cComp + oComp) / 2;
     return `<div class="net-card" style="border-top:2px solid ${cat.color};">
       <div class="net-card-title" style="color:${cat.color};">${cat.label}</div>
+      <div class="net-card-desc">${cat.desc}</div>
+      <div class="net-card-row" style="margin-bottom:4px;">
+        <span></span>
+        <span class="net-card-col-hdr">Jobs</span>
+        <span class="net-card-col-hdr">Fully-Burdened</span>
+      </div>
       <div class="net-card-row">
         <span class="net-card-model">Claude</span>
         <span class="net-card-jobs">${formatNumber(cJobs)}</span>
@@ -1026,7 +1064,14 @@ function buildNetDashboard() {
       </div>
     </div>`;
   }).join("");
-  document.getElementById("netDashboard").innerHTML = cards;
+
+  const totalRow = `<div class="net-total-row">
+    <span style="color:var(--fg);font-weight:600;">Total:</span>
+    ${formatNumber(totalJobs)} jobs &middot; ${formatComp(totalBurdenedComp)} fully-burdened
+    <span style="font-size:10px;">&mdash; 342 BLS occupations, full US labor market</span>
+  </div>`;
+
+  document.getElementById("netDashboard").innerHTML = cards + totalRow;
 }
 
 // ── Events ─────────────────────────────────────────────────────────────
