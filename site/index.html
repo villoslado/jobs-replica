@@ -666,15 +666,22 @@ function showTooltip(d, mx, my) {
   } else {
     ttRationale.textContent = "";
   }
+  // Make visible but transparent so layout is computed before we read dimensions
+  tt.style.opacity = "0";
   tt.classList.add("visible");
-  const rect = tt.getBoundingClientRect();
-  const pad = 12;
-  let x = mx + pad;
-  let y = my + pad;
-  if (x + rect.width > window.innerWidth) x = mx - rect.width - pad;
-  if (y + rect.height > window.innerHeight) y = my - rect.height - pad;
-  tt.style.left = x + "px";
-  tt.style.top = y + "px";
+  requestAnimationFrame(() => {
+    const rect = tt.getBoundingClientRect();
+    const pad = 12;
+    let x = mx + pad;
+    let y = my + pad;
+    x = Math.min(x, window.innerWidth - rect.width - pad);
+    y = Math.min(y, window.innerHeight - rect.height - pad);
+    x = Math.max(x, pad);
+    y = Math.max(y, pad);
+    tt.style.left = x + "px";
+    tt.style.top = y + "px";
+    tt.style.opacity = "";  // release to CSS transition
+  });
 }
 function hideTooltip() { document.getElementById("tooltip").classList.remove("visible"); }
 
