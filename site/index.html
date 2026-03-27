@@ -666,12 +666,15 @@ function showTooltip(d, mx, my) {
   } else {
     ttRationale.textContent = "";
   }
-  let tx = mx + 16, ty = my - 16;
-  if (tx + 340 > window.innerWidth) tx = mx - 356;
-  if (ty < 10) ty = my + 16;
-  if (ty + 200 > window.innerHeight) ty = my - 200;
-  tt.style.left = tx + "px"; tt.style.top = ty + "px";
   tt.classList.add("visible");
+  const rect = tt.getBoundingClientRect();
+  const pad = 12;
+  let x = mx + pad;
+  let y = my + pad;
+  if (x + rect.width > window.innerWidth) x = mx - rect.width - pad;
+  if (y + rect.height > window.innerHeight) y = my - rect.height - pad;
+  tt.style.left = x + "px";
+  tt.style.top = y + "px";
 }
 function hideTooltip() { document.getElementById("tooltip").classList.remove("visible"); }
 
