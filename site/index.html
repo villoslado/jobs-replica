@@ -530,11 +530,12 @@ function worstAspect(row, rowSum, side, totalArea, availableExtent) {
 
 let data = [];
 let rects = [];
+let catBoxes = [];
 let hovered = null;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 let dpr = window.devicePixelRatio || 1;
-const MARGIN = 12, GAP = 1.5;
+const MARGIN = 12, GAP = 1.5, CAT_PAD = 2;
 
 function layout() {
   const wrapper = document.getElementById("wrapper");
@@ -551,12 +552,18 @@ function layout() {
     value: byCategory[cat].reduce((s, d) => s + (d.jobs || 1), 0),
   })).sort((a, b) => b.value - a.value);
   const catRects = squarify(categories, tx, ty, tw, th);
+  catBoxes = catRects;
   rects = [];
+  const pad = GAP + CAT_PAD;
   for (const cr of catRects) {
     const items = cr.items.map(d => ({ ...d, value: d.jobs || 1 }));
-    const innerRects = squarify(items, cr.rx + GAP, cr.ry + GAP, cr.rw - GAP * 2, cr.rh - GAP * 2);
+    const innerRects = squarify(items, cr.rx + pad, cr.ry + pad, cr.rw - pad * 2, cr.rh - pad * 2);
     for (const ir of innerRects) rects.push(ir);
   }
+}
+
+function categoryLabel(cat) {
+  return cat.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function draw() {
@@ -582,6 +589,27 @@ function draw() {
         ctx.fillStyle = "rgba(255,255,255,0.5)";
         ctx.fillText(tileSubInfo(r), rx + 5, ry + 4 + fontSize + 2);
       }
+      ctx.restore();
+    }
+  }
+  // Category cluster borders and labels
+  for (const cr of catBoxes) {
+    const bx = cr.rx + 1, by = cr.ry + 1, bw = cr.rw - 2, bh = cr.rh - 2;
+    if (bw <= 0 || bh <= 0) continue;
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, bw, bh);
+    if (bw >= 80 && bh >= 40) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bx, by, bw, bh);
+      ctx.clip();
+      ctx.font = "11px -apple-system, system-ui, sans-serif";
+      if ('letterSpacing' in ctx) ctx.letterSpacing = "0.08em";
+      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.fillText(categoryLabel(cr.cat).toUpperCase(), bx + bw / 2, by + bh / 2);
       ctx.restore();
     }
   }
