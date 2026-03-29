@@ -562,6 +562,34 @@ function layout() {
   }
 }
 
+const CATEGORY_ABBREV = {
+  "architecture-and-engineering": "Arch.",
+  "arts-and-design": "Arts",
+  "building-and-grounds-cleaning": "Cleaning",
+  "business-and-financial": "Finance",
+  "community-and-social-service": "Community",
+  "computer-and-information-technology": "Tech",
+  "construction-and-extraction": "Construction",
+  "education-training-and-library": "Education",
+  "entertainment-and-sports": "Sports",
+  "farming-fishing-and-forestry": "Farming",
+  "food-preparation-and-serving": "Food",
+  "healthcare": "Health",
+  "installation-maintenance-and-repair": "Maintenance",
+  "legal": "Legal",
+  "life-physical-and-social-science": "Science",
+  "management": "Mgmt.",
+  "math": "Math",
+  "media-and-communication": "Media",
+  "military": "Military",
+  "office-and-administrative-support": "Admin.",
+  "personal-care-and-service": "Personal Care",
+  "production": "Production",
+  "protective-service": "Protective",
+  "sales": "Sales",
+  "transportation-and-material-moving": "Transport",
+};
+
 function categoryLabel(cat) {
   return cat.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
@@ -599,28 +627,25 @@ function draw() {
     ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     ctx.strokeRect(bx, by, bw, bh);
-    if (bw >= 80 && bh >= 40) {
+    const showFull = bw >= 120 && bh >= 50;
+    const showAbbrev = bw >= 40 && bh >= 20;
+    if (showFull || showAbbrev) {
+      const barH = 16;
       ctx.save();
-      ctx.beginPath();
-      ctx.rect(bx, by, bw, bh);
-      ctx.clip();
-      ctx.font = "10px -apple-system, system-ui, sans-serif";
+      ctx.fillStyle = "rgba(8,13,20,0.90)";
+      ctx.fillRect(bx, by, bw, barH);
+      ctx.font = "600 10px -apple-system, system-ui, sans-serif";
       if ('letterSpacing' in ctx) ctx.letterSpacing = "0.08em";
-      ctx.textBaseline = "top";
+      ctx.textBaseline = "middle";
       ctx.textAlign = "center";
-      const label = categoryLabel(cr.cat).toUpperCase();
-      const textW = ctx.measureText(label).width;
-      const pillPadX = 6, pillPadY = 2;
-      const pillW = textW + pillPadX * 2;
-      const pillH = 10 + pillPadY * 2;
-      const pillX = bx + bw / 2 - pillW / 2;
-      const pillY = by + 2;
-      ctx.fillStyle = "rgba(8,13,20,0.85)";
+      const labelText = showFull
+        ? categoryLabel(cr.cat).toUpperCase()
+        : (CATEGORY_ABBREV[cr.cat] || categoryLabel(cr.cat)).toUpperCase();
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
       ctx.beginPath();
-      ctx.rect(pillX, pillY, pillW, pillH);
-      ctx.fill();
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      ctx.fillText(label, bx + bw / 2, pillY + pillPadY);
+      ctx.rect(bx, by, bw, barH);
+      ctx.clip();
+      ctx.fillText(labelText, bx + bw / 2, by + barH / 2);
       ctx.restore();
     }
   }
