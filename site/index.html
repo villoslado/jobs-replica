@@ -535,7 +535,7 @@ let hovered = null;
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 let dpr = window.devicePixelRatio || 1;
-const MARGIN = 12, GAP = 1.5, CAT_PAD = 2;
+const MARGIN = 12, GAP = 1.5, CAT_PAD = 2, CAT_GAP = 9;
 
 function layout() {
   const wrapper = document.getElementById("wrapper");
@@ -554,35 +554,34 @@ function layout() {
   const catRects = squarify(categories, tx, ty, tw, th);
   catBoxes = catRects;
   rects = [];
-  const pad = GAP + CAT_PAD;
   for (const cr of catRects) {
     const items = cr.items.map(d => ({ ...d, value: d.jobs || 1 }));
-    const innerRects = squarify(items, cr.rx + pad, cr.ry + pad, cr.rw - pad * 2, cr.rh - pad * 2);
+    const innerRects = squarify(items, cr.rx + CAT_GAP, cr.ry + CAT_GAP, cr.rw - CAT_GAP * 2, cr.rh - CAT_GAP * 2);
     for (const ir of innerRects) rects.push(ir);
   }
 }
 
 const CATEGORY_ABBREV = {
-  "architecture-and-engineering": "Arch.",
-  "arts-and-design": "Arts",
+  "architecture-and-engineering": "Architecture",
+  "arts-and-design": "Arts & Design",
   "building-and-grounds-cleaning": "Cleaning",
-  "business-and-financial": "Finance",
+  "business-and-financial": "Business",
   "community-and-social-service": "Community",
-  "computer-and-information-technology": "Tech",
+  "computer-and-information-technology": "IT",
   "construction-and-extraction": "Construction",
   "education-training-and-library": "Education",
-  "entertainment-and-sports": "Sports",
+  "entertainment-and-sports": "Entertainment",
   "farming-fishing-and-forestry": "Farming",
   "food-preparation-and-serving": "Food",
-  "healthcare": "Health",
+  "healthcare": "Healthcare",
   "installation-maintenance-and-repair": "Maintenance",
   "legal": "Legal",
-  "life-physical-and-social-science": "Science",
-  "management": "Mgmt.",
+  "life-physical-and-social-science": "Sciences",
+  "management": "Management",
   "math": "Math",
   "media-and-communication": "Media",
   "military": "Military",
-  "office-and-administrative-support": "Admin.",
+  "office-and-administrative-support": "Admin",
   "personal-care-and-service": "Personal Care",
   "production": "Production",
   "protective-service": "Protective",
@@ -620,34 +619,22 @@ function draw() {
       ctx.restore();
     }
   }
-  // Category cluster borders and labels
+  // Category cluster borders and labels (labels drawn in gap above cluster)
   for (const cr of catBoxes) {
-    const bx = cr.rx + 1, by = cr.ry + 1, bw = cr.rw - 2, bh = cr.rh - 2;
+    const bx = cr.rx + CAT_GAP, by = cr.ry + CAT_GAP, bw = cr.rw - CAT_GAP * 2, bh = cr.rh - CAT_GAP * 2;
     if (bw <= 0 || bh <= 0) continue;
     ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     ctx.strokeRect(bx, by, bw, bh);
-    const showFull = bw >= 120 && bh >= 50;
-    const showAbbrev = bw >= 40 && bh >= 20;
-    if (showFull || showAbbrev) {
-      const barH = 16;
-      ctx.save();
-      ctx.fillStyle = "rgba(8,13,20,0.90)";
-      ctx.fillRect(bx, by, bw, barH);
-      ctx.font = "600 10px -apple-system, system-ui, sans-serif";
-      if ('letterSpacing' in ctx) ctx.letterSpacing = "0.08em";
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "center";
-      const labelText = showFull
-        ? categoryLabel(cr.cat).toUpperCase()
-        : (CATEGORY_ABBREV[cr.cat] || categoryLabel(cr.cat)).toUpperCase();
-      ctx.fillStyle = "rgba(255,255,255,0.75)";
-      ctx.beginPath();
-      ctx.rect(bx, by, bw, barH);
-      ctx.clip();
-      ctx.fillText(labelText, bx + bw / 2, by + barH / 2);
-      ctx.restore();
-    }
+    const labelText = (CATEGORY_ABBREV[cr.cat] || categoryLabel(cr.cat)).toUpperCase();
+    ctx.save();
+    ctx.font = "400 11px -apple-system, system-ui, sans-serif";
+    if ('letterSpacing' in ctx) ctx.letterSpacing = "0.06em";
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.fillText(labelText, bx, cr.ry);
+    ctx.restore();
   }
 }
 
