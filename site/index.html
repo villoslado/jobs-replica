@@ -604,12 +604,23 @@ function draw() {
       ctx.beginPath();
       ctx.rect(bx, by, bw, bh);
       ctx.clip();
-      ctx.font = "11px -apple-system, system-ui, sans-serif";
+      ctx.font = "10px -apple-system, system-ui, sans-serif";
       if ('letterSpacing' in ctx) ctx.letterSpacing = "0.08em";
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
-      ctx.textBaseline = "middle";
+      ctx.textBaseline = "top";
       ctx.textAlign = "center";
-      ctx.fillText(categoryLabel(cr.cat).toUpperCase(), bx + bw / 2, by + bh / 2);
+      const label = categoryLabel(cr.cat).toUpperCase();
+      const textW = ctx.measureText(label).width;
+      const pillPadX = 6, pillPadY = 2;
+      const pillW = textW + pillPadX * 2;
+      const pillH = 10 + pillPadY * 2;
+      const pillX = bx + bw / 2 - pillW / 2;
+      const pillY = by + 2;
+      ctx.fillStyle = "rgba(8,13,20,0.85)";
+      ctx.beginPath();
+      ctx.rect(pillX, pillY, pillW, pillH);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.fillText(label, bx + bw / 2, pillY + pillPadY);
       ctx.restore();
     }
   }
