@@ -1137,9 +1137,7 @@ function buildNetDashboard() {
     { key: 'replace',     label: 'Replace',      color: '#e05555', desc: 'AI absorbs core work \u2014 headcount contracts' },
   ];
   function formatComp(n) {
-    if (n >= 1e12) return "$" + (n / 1e12).toFixed(1) + "T";
-    if (n >= 1e9) return "$" + Math.round(n / 1e9) + "B";
-    return "$" + Math.round(n / 1e6) + "M";
+    return "$" + (n / 1e12).toFixed(2) + "T";
   }
   let totalJobs = 0, totalBurdenedComp = 0;
   for (const d of data) { totalJobs += d.jobs || 0; totalBurdenedComp += d.burdened_comp || 0; }
