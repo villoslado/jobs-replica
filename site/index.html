@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>How Exposed Is the US Job Market to AI - and What Kind of Exposure?</title>
+<title>Economic Scale of AI Exposure in Productivity Contexts</title>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -312,7 +312,7 @@ canvas#canvas {
 <div id="wrapper">
 <div id="header">
   <div class="intro">
-    <h1>How Exposed Is the US Job Market to AI - and What Kind of Exposure?</h1>
+    <h1>Economic Scale of AI Exposure in Productivity Contexts</h1>
     <p style="font-size:0.8em;color:var(--fg2);margin-top:-0.4em;margin-bottom:0.6em">By <a href="https://www.linkedin.com/in/villoslado" target="_blank" style="color:var(--fg2);text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Gerardo Villoslado</a> &middot; Built on <a href="https://github.com/karpathy/jobs">karpathy/jobs</a></p>
     <p>This is a research tool that visualizes <b>342 occupations</b> from the <a href="https://www.bls.gov/ooh/">Bureau of Labor Statistics Occupational Outlook Handbook</a>, covering <b>143M jobs</b> across the US economy. Each rectangle's <b>area</b> is proportional to total employment. <b>Color</b> shows the selected metric &mdash; toggle between BLS projected growth outlook, median pay, education requirements, and AI net effect. Click any tile to view its full BLS page. This is not a report, a paper, or a serious economic publication &mdash; it is a development tool for exploring BLS data visually.</p>
     <p><b>Four-model, two-axis scoring:</b> Each occupation is independently scored by <b>Claude Sonnet 4.6</b>, <b>Claude Opus 4.8</b>, <b>GPT-4o</b>, and <b>GPT-5.5</b> on two dimensions: <b>disruption</b> (0&ndash;10, how much AI reshapes the work) and <b>demand elasticity</b> (0&ndash;10, how much cheaper/better service expands demand). Combining these two axes yields a <b>net effect</b> category for each occupation: <span style="color:#e05555;font-weight:600;">replace</span> (high disruption, low elasticity), <span style="color:#e09955;font-weight:600;">restructure</span> (high disruption, moderate elasticity), <span style="color:#55aa77;font-weight:600;">augment</span> (high disruption, high elasticity), or <span style="color:#5588cc;font-weight:600;">resilient</span> (low disruption). Where any two models disagree on net effect or differ by &ge;2 points on either axis, the occupation is flagged as <b>contested</b>.</p>
