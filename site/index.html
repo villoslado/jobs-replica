@@ -324,9 +324,9 @@ canvas#canvas {
     These are structured LLM estimates, not economic forecasts. Scores reflect likely structural direction - not timing, not certainty, and not a prediction of job losses. Many factors are not captured: regulatory barriers, union protections, adoption timelines, wage adjustment, and social preferences for human workers.</p>
     <details>
       <summary>Methodology &amp; Limitations</summary>
-      <p style="margin-top:8px;"><b>Is this based on Acemoglu's model?</b> No. This analysis does not use an economic model. It is a structured prompt-engineering exercise &mdash; each occupation description from the BLS is sent to four AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and GPT-5.5) which score it on two dimensions. Acemoglu's work operates at the task level using economic viability thresholds; this analysis operates at the occupation level using LLM judgment. The two approaches are complementary but distinct. Acemoglu's estimates are more conservative (~5% of tasks cost-effective to automate today); this framework scores structural direction, not economic viability.</p>
-      <p><b>Does it account for relative labor prices?</b> No. Wage levels are held constant at 2024 BLS medians. The analysis does not model wage compression in displaced occupations, wage inflation in augmented ones, or the rate at which falling AI costs change the cost-effectiveness threshold for automation. The dollar figures represent fully-burdened labor cost at current prices &mdash; not a forecast of savings or losses. In reality, wages in replace-category occupations will likely compress before displacement fully materializes, reducing the actual economic scale of AI exposure in productivity contexts shown here.</p>
-      <p><b>What this analysis is and isn't.</b> This is a structured way of asking four AI models how they reason about AI's impact on work &mdash; not an economic forecast, not a peer-reviewed study, and not a prediction of job losses. It does not account for regulatory barriers, union protections, adoption timelines, or social preferences for human workers. Where the four models disagree (260 out of 342 occupations are flagged as contested), that disagreement is itself a meaningful signal &mdash; it indicates genuine uncertainty about that occupation's trajectory.</p>
+      <p style="margin-top:8px;"><b>Is this based on Acemoglu's model?</b> No. This analysis does not use an economic model. It is a structured prompt-engineering exercise - each occupation description from the BLS is sent to four AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and GPT-5.5) which score it on two dimensions. Acemoglu's work operates at the task level using economic viability thresholds; this analysis operates at the occupation level using LLM judgment. The two approaches are complementary but distinct. Acemoglu's estimates are more conservative (~5% of tasks cost-effective to automate today); this framework scores structural direction, not economic viability.</p>
+      <p><b>Does it account for relative labor prices?</b> No. Wage levels are held constant at 2024 BLS medians. The analysis does not model wage compression in displaced occupations, wage inflation in augmented ones, or the rate at which falling AI costs change the cost-effectiveness threshold for automation. The dollar figures represent fully-burdened labor cost at current prices - not a forecast of savings or losses. In reality, wages in replace-category occupations will likely compress before displacement fully materializes, reducing the actual economic scale of AI exposure in productivity contexts shown here.</p>
+      <p><b>What this analysis is and isn't.</b> This is a structured way of asking four AI models how they reason about AI's impact on work - not an economic forecast, not a peer-reviewed study, and not a prediction of job losses. It does not account for regulatory barriers, union protections, adoption timelines, or social preferences for human workers. Where the four models disagree (260 out of 342 occupations are flagged as contested), that disagreement is itself a meaningful signal - it indicates genuine uncertainty about that occupation's trajectory.</p>
     </details>
   </div>
 
@@ -1087,8 +1087,8 @@ function updateExposureStats(totalJobs) {
 }
 
 function updateNetEffectStats(totalJobs) {
+  if (colorMode === "contested") { updateContestedStats(totalJobs); return; }
   const NET_CATS = ['replace', 'restructure', 'augment', 'resilient'];
-  // Contested mode shows Claude Sonnet stats by default.
   const active = NET_MODES[colorMode] || NET_MODES.claude_net;
   const modelKey = active.key;
   const modelLabel = active.label;
@@ -1136,6 +1136,54 @@ function updateNetEffectStats(totalJobs) {
     <div class="stat-big" style="color:#5588cc">${(resilientJobs / 1e6).toFixed(1)}M</div>
     <div class="stat-label">jobs, low disruption</div>`;
 
+  document.getElementById("block7").innerHTML = "";
+  document.getElementById("block8").innerHTML = "";
+}
+
+function updateContestedStats(totalJobs) {
+  const totalOccupations = data.length;
+
+  // Tally contested occupations and the jobs they cover, plus a breakdown of
+  // WHY each is contested: net-effect disagreement vs. >=2 point score gap.
+  let contestedCount = 0, contestedJobs = 0;
+  let netDiffersCount = 0, scoreGapCount = 0;
+  for (const d of data) {
+    if (isContested(d)) { contestedCount++; contestedJobs += d.jobs || 0; }
+
+    const nets = MODEL_DISPLAY.map(m => d[m.key + "_net_effect"]).filter(v => v != null);
+    if (nets.length > 1 && nets.some(v => v !== nets[0])) netDiffersCount++;
+
+    const dis = MODEL_DISPLAY.map(m => d[m.key + "_disruption"]).filter(v => v != null);
+    const ela = MODEL_DISPLAY.map(m => d[m.key + "_elasticity"]).filter(v => v != null);
+    const disGap = dis.length > 1 ? Math.max(...dis) - Math.min(...dis) : 0;
+    const elaGap = ela.length > 1 ? Math.max(...ela) - Math.min(...ela) : 0;
+    if (disGap >= 2 || elaGap >= 2) scoreGapCount++;
+  }
+
+  // block2: contested occupation count
+  document.getElementById("block2").innerHTML = `<h3>Contested occupations</h3>
+    <div class="stat-big" style="color:#ddaa33">${contestedCount}</div>
+    <div class="stat-label">of ${totalOccupations}</div>`;
+
+  // block3: jobs in contested occupations
+  document.getElementById("block3").innerHTML = `<h3>Jobs in contested occupations</h3>
+    <div class="stat-big" style="color:#ddaa33">${(contestedJobs / 1e6).toFixed(1)}M</div>
+    <div class="stat-label">total employment</div>`;
+
+  // block4: contested jobs as % of workforce
+  document.getElementById("block4").innerHTML = `<h3>% of workforce contested</h3>
+    <div class="stat-big" style="color:#ddaa33">${(contestedJobs / 143.1e6 * 100).toFixed(0)}%</div>
+    <div class="stat-label">of 143.1M jobs</div>`;
+
+  // block5: breakdown of what models disagree on
+  document.getElementById("block5").innerHTML = `<h3>Models disagree on</h3>
+    <div class="hbar-chart">
+      <div class="hbar-row"><span class="hbar-label">Net effect</span><div class="hbar-track"><div class="hbar-fill" style="width:${netDiffersCount/totalOccupations*100}%;background:#ddaa33"></div></div><span class="hbar-val">${netDiffersCount}</span></div>
+      <div class="hbar-row"><span class="hbar-label">Score gap ≥2</span><div class="hbar-track"><div class="hbar-fill" style="width:${scoreGapCount/totalOccupations*100}%;background:#ddaa33"></div></div><span class="hbar-val">${scoreGapCount}</span></div>
+    </div>
+    <div class="stat-label" style="margin-top:4px;">occupations where any two models differ</div>`;
+
+  document.getElementById("block6").innerHTML = "";
   document.getElementById("block7").innerHTML = "";
   document.getElementById("block8").innerHTML = "";
 }
