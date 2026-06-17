@@ -6,6 +6,9 @@ rubric, and collects structured scores. Results are cached incrementally so
 the script can be resumed if interrupted.
 
 Output file is chosen automatically based on the model:
+  - claude-fable-5                 → scores_fable.json
+  - claude-opus-4-8                → scores_opus.json
+  - gpt-5.5                        → scores_gpt55.json
   - Claude models (claude-*)       → scores_claude.json
   - OpenAI models (gpt-*)          → scores_openai.json
   - Everything else (OpenRouter)   → scores.json
@@ -147,6 +150,12 @@ what drives the elasticity score, and why the net_effect category fits>"
 
 
 def get_output_file(model):
+    if model == "claude-fable-5":
+        return "scores_fable.json"
+    if model == "claude-opus-4-8":
+        return "scores_opus.json"
+    if model == "gpt-5.5":
+        return "scores_gpt55.json"
     if model.startswith("claude-"):
         return "scores_claude.json"
     if model.startswith("gpt-"):
@@ -157,40 +166,52 @@ def get_output_file(model):
 def score_occupation(client, text, model):
     """Send one occupation to the LLM and parse the structured response."""
     if model.startswith("claude-"):
+        body = {
+            "model": model,
+            "max_tokens": 1024,
+            "system": SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": text}],
+        }
+        if model != "claude-opus-4-8":
+            body["temperature"] = 0.2
         response = client.post(
             ANTHROPIC_API_URL,
             headers={
                 "x-api-key": os.environ["ANTHROPIC_API_KEY"],
                 "anthropic-version": "2023-06-01",
             },
-            json={
-                "model": model,
-                "max_tokens": 1024,
-                "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": text}],
-                "temperature": 0.2,
-            },
+            json=body,
             timeout=60,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception:
+            print(f"API error response: {response.text}")
+            raise
         content = response.json()["content"][0]["text"]
     elif model.startswith("gpt-"):
+        body = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": text},
+            ],
+        }
+        if model != "gpt-5.5":
+            body["temperature"] = 0.2
         response = client.post(
             OPENAI_API_URL,
             headers={
                 "Authorization": f"Bearer {os.environ['OPENAI_API_KEY']}",
             },
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": text},
-                ],
-                "temperature": 0.2,
-            },
+            json=body,
             timeout=60,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception:
+            print(f"API error response: {response.text}")
+            raise
         content = response.json()["choices"][0]["message"]["content"]
     else:
         response = client.post(
@@ -208,7 +229,11 @@ def score_occupation(client, text, model):
             },
             timeout=60,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except Exception:
+            print(f"API error response: {response.text}")
+            raise
         content = response.json()["choices"][0]["message"]["content"]
 
     # Strip markdown code fences if present

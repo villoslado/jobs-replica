@@ -1,8 +1,8 @@
 """
 Build a compact JSON for the website by merging CSV stats with AI scores.
 
-Reads occupations.csv (for stats), scores_claude.json, and scores_openai.json.
-Writes site/data.json.
+Reads occupations.csv (for stats) and scores_claude.json, scores_opus.json,
+scores_openai.json, scores_gpt55.json. Writes site/data.json.
 
 Usage:
     uv run python build_site_data.py
@@ -50,8 +50,13 @@ def load_scores(path):
 
 
 def main():
-    scores_claude = load_scores("scores_claude.json")
-    scores_openai = load_scores("scores_openai.json")
+    model_scores = {
+        "claude": load_scores("scores_claude.json"),
+        "opus": load_scores("scores_opus.json"),
+        "openai": load_scores("scores_openai.json"),
+        "gpt55": load_scores("scores_gpt55.json"),
+    }
+    model_keys = list(model_scores.keys())
 
     with open("occupations.csv") as f:
         reader = csv.DictReader(f)
@@ -61,8 +66,7 @@ def main():
     for row in rows:
         slug = row["slug"]
         category = row["category"]
-        sc = scores_claude.get(slug, {})
-        so = scores_openai.get(slug, {})
+        per_model = {m: model_scores[m].get(slug, {}) for m in model_keys}
 
         pay = int(row["median_pay_annual"]) if row["median_pay_annual"] else None
         jobs = int(row["num_jobs_2024"]) if row["num_jobs_2024"] else None
@@ -70,26 +74,26 @@ def main():
         eci = ECI_BY_CATEGORY.get(category, FALLBACK_ECI)
         burdened_comp = round(jobs * pay * eci) if jobs and pay else None
 
-        # Contested: net_effect disagrees OR disruption/elasticity differ by >= 2
-        claude_net = sc.get("net_effect")
-        openai_net = so.get("net_effect")
-        claude_disruption = sc.get("disruption")
-        openai_disruption = so.get("disruption")
-        claude_elasticity = sc.get("elasticity")
-        openai_elasticity = so.get("elasticity")
-
+        # Contested: any two models disagree on net_effect, or differ by >= 2
+        # on disruption or elasticity.
         contested = False
-        if claude_net and openai_net:
-            if claude_net != openai_net:
-                contested = True
-            if claude_disruption is not None and openai_disruption is not None:
-                if abs(claude_disruption - openai_disruption) >= 2:
+        for i in range(len(model_keys)):
+            for j in range(i + 1, len(model_keys)):
+                a = per_model[model_keys[i]]
+                b = per_model[model_keys[j]]
+                a_net, b_net = a.get("net_effect"), b.get("net_effect")
+                if not (a_net and b_net):
+                    continue
+                if a_net != b_net:
                     contested = True
-            if claude_elasticity is not None and openai_elasticity is not None:
-                if abs(claude_elasticity - openai_elasticity) >= 2:
+                a_d, b_d = a.get("disruption"), b.get("disruption")
+                if a_d is not None and b_d is not None and abs(a_d - b_d) >= 2:
+                    contested = True
+                a_e, b_e = a.get("elasticity"), b.get("elasticity")
+                if a_e is not None and b_e is not None and abs(a_e - b_e) >= 2:
                     contested = True
 
-        data.append({
+        record = {
             "title": row["title"],
             "slug": slug,
             "category": category,
@@ -100,16 +104,15 @@ def main():
             "education": row["entry_education"],
             "url": row.get("url", ""),
             "burdened_comp": burdened_comp,
-            "claude_disruption": claude_disruption,
-            "claude_elasticity": claude_elasticity,
-            "claude_net_effect": claude_net,
-            "claude_rationale": sc.get("rationale"),
-            "openai_disruption": openai_disruption,
-            "openai_elasticity": openai_elasticity,
-            "openai_net_effect": openai_net,
-            "openai_rationale": so.get("rationale"),
-            "contested": contested,
-        })
+        }
+        for m in model_keys:
+            s = per_model[m]
+            record[f"{m}_disruption"] = s.get("disruption")
+            record[f"{m}_elasticity"] = s.get("elasticity")
+            record[f"{m}_net_effect"] = s.get("net_effect")
+            record[f"{m}_rationale"] = s.get("rationale")
+        record["contested"] = contested
+        data.append(record)
 
     os.makedirs("site", exist_ok=True)
     with open("site/data.json", "w") as f:
