@@ -21,3 +21,7 @@ embeddings.json
 
 # macOS
 .DS_Store
+
+# Business idea generation (uncommitted)
+ideas.json
+ideate.py
