@@ -317,16 +317,16 @@ canvas#canvas {
     <p><strong>What it is</strong><br>
     A research tool that maps how AI may reshape 342 US occupations across the entire economy, using official data from the <a href="https://www.bls.gov/ooh/">Bureau of Labor Statistics Occupational Outlook Handbook</a>. It covers 143 million jobs and $13.1 trillion in fully-burdened labor compensation.</p>
     <p><strong>How it works</strong><br>
-    Each occupation is independently scored by four AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and GPT-5.5) on two dimensions: disruption (how much AI changes the core work) and demand elasticity (whether productivity gains expand demand or reduce headcount). The two scores combine into one of four outcome categories: <span style="color: #e05555; font-weight: 600;">replace</span>, <span style="color: #e09955; font-weight: 600;">restructure</span>, <span style="color: #55aa77; font-weight: 600;">augment</span>, or <span style="color: #5588cc; font-weight: 600;">resilient</span>. Where models disagree, the occupation is flagged as contested.</p>
+    Each occupation is independently scored by five AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, GPT-5.5, and Claude Fable 5) on two dimensions: disruption (how much AI changes the core work) and demand elasticity (whether productivity gains expand demand or reduce headcount). The two scores combine into one of four outcome categories: <span style="color: #e05555; font-weight: 600;">replace</span>, <span style="color: #e09955; font-weight: 600;">restructure</span>, <span style="color: #55aa77; font-weight: 600;">augment</span>, or <span style="color: #5588cc; font-weight: 600;">resilient</span>. Where models disagree, the occupation is flagged as contested.</p>
     <p><strong>What you are looking at</strong><br>
-    Each rectangle's area is proportional to employment. Color shows the selected metric - toggle between BLS growth outlook, median pay, education requirements, and each model's AI net effect scoring. Click any tile to see full scores and rationale from all four models. The dashboard below shows aggregate jobs and fully-burdened compensation by outcome category across all four models.</p>
+    Each rectangle's area is proportional to employment. Color shows the selected metric - toggle between BLS growth outlook, median pay, education requirements, and each model's AI net effect scoring. Click any tile to see full scores and rationale from all five models. The dashboard below shows aggregate jobs and fully-burdened compensation by outcome category across all five models.</p>
     <p><strong>Caveats</strong><br>
     These are structured LLM estimates, not economic forecasts. Scores reflect likely structural direction - not timing, not certainty, and not a prediction of job losses. Many factors are not captured: regulatory barriers, union protections, adoption timelines, wage adjustment, and social preferences for human workers.</p>
     <details>
       <summary>Methodology &amp; Limitations</summary>
-      <p style="margin-top:8px;"><b>Is this based on Acemoglu's model?</b> No. This analysis does not use an economic model. It is a structured prompt-engineering exercise - each occupation description from the BLS is sent to four AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and GPT-5.5) which score it on two dimensions. Acemoglu's work operates at the task level using economic viability thresholds; this analysis operates at the occupation level using LLM judgment. The two approaches are complementary but distinct. Acemoglu's estimates are more conservative (~5% of tasks cost-effective to automate today); this framework scores structural direction, not economic viability.</p>
+      <p style="margin-top:8px;"><b>Is this based on Acemoglu's model?</b> No. This analysis does not use an economic model. It is a structured prompt-engineering exercise - each occupation description from the BLS is sent to five AI models (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, GPT-5.5, and Claude Fable 5) which score it on two dimensions. Acemoglu's work operates at the task level using economic viability thresholds; this analysis operates at the occupation level using LLM judgment. The two approaches are complementary but distinct. Acemoglu's estimates are more conservative (~5% of tasks cost-effective to automate today); this framework scores structural direction, not economic viability.</p>
       <p><b>Does it account for relative labor prices?</b> No. Wage levels are held constant at 2024 BLS medians. The analysis does not model wage compression in displaced occupations, wage inflation in augmented ones, or the rate at which falling AI costs change the cost-effectiveness threshold for automation. The dollar figures represent fully-burdened labor cost at current prices - not a forecast of savings or losses. In reality, wages in replace-category occupations will likely compress before displacement fully materializes, reducing the actual economic scale of AI exposure in productivity contexts shown here.</p>
-      <p><b>What this analysis is and isn't.</b> This is a structured way of asking four AI models how they reason about AI's impact on work - not an economic forecast, not a peer-reviewed study, and not a prediction of job losses. It does not account for regulatory barriers, union protections, adoption timelines, or social preferences for human workers. Where the four models disagree (260 out of 342 occupations are flagged as contested), that disagreement is itself a meaningful signal - it indicates genuine uncertainty about that occupation's trajectory.</p>
+      <p><b>What this analysis is and isn't.</b> This is a structured way of asking five AI models how they reason about AI's impact on work - not an economic forecast, not a peer-reviewed study, and not a prediction of job losses. It does not account for regulatory barriers, union protections, adoption timelines, or social preferences for human workers. Where the five models disagree (276 out of 342 occupations are flagged as contested), that disagreement is itself a meaningful signal - it indicates genuine uncertainty about that occupation's trajectory.</p>
     </details>
   </div>
 
@@ -343,6 +343,7 @@ canvas#canvas {
         <button data-mode="opus_net">Claude Opus 4.8</button>
         <button data-mode="openai_net">GPT-4o</button>
         <button data-mode="gpt55_net">GPT-5.5</button>
+        <button data-mode="fable5_net">Claude Fable 5</button>
         <button data-mode="contested">Contested</button>
       </div>
     </div>
@@ -461,12 +462,14 @@ const NET_MODES = {
   opus_net:   { key: "opus",   label: "Claude Opus 4.8" },
   openai_net: { key: "openai", label: "GPT-4o" },
   gpt55_net:  { key: "gpt55",  label: "GPT-5.5" },
+  fable5_net: { key: "fable5", label: "Claude Fable 5" },
 };
 const MODEL_DISPLAY = [
   { key: "claude", label: "Claude Sonnet 4.6" },
   { key: "opus",   label: "Claude Opus 4.8" },
   { key: "openai", label: "GPT-4o" },
   { key: "gpt55",  label: "GPT-5.5" },
+  { key: "fable5", label: "Claude Fable 5" },
 ];
 function isNetMode(m) { return m in NET_MODES; }
 function isNetOrContestedMode(m) { return isNetMode(m) || m === "contested"; }
@@ -1229,6 +1232,7 @@ function buildNetDashboard() {
       ${row("Opus 4.8", "Most capable — Anthropic’s reasoning model", perModel.opus.jobs, perModel.opus.comp)}
       ${row("GPT-4o", "Efficient — OpenAI’s everyday model", perModel.openai.jobs, perModel.openai.comp)}
       ${row("GPT-5.5", "Most capable — OpenAI’s reasoning model", perModel.gpt55.jobs, perModel.gpt55.comp)}
+      ${row("Fable 5", "Most capable — Anthropic’s frontier model", perModel.fable5.jobs, perModel.fable5.comp)}
     </div>`;
   }).join("");
 

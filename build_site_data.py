@@ -2,7 +2,7 @@
 Build a compact JSON for the website by merging CSV stats with AI scores.
 
 Reads occupations.csv (for stats) and scores_claude.json, scores_opus.json,
-scores_openai.json, scores_gpt55.json. Writes site/data.json.
+scores_openai.json, scores_gpt55.json, scores_fable5.json. Writes site/data.json.
 
 Usage:
     uv run python build_site_data.py
@@ -55,6 +55,7 @@ def main():
         "opus": load_scores("scores_opus.json"),
         "openai": load_scores("scores_openai.json"),
         "gpt55": load_scores("scores_gpt55.json"),
+        "fable5": load_scores("scores_fable5.json"),
     }
     model_keys = list(model_scores.keys())
 

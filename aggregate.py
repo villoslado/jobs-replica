@@ -14,7 +14,7 @@ import csv
 import json
 
 CATEGORIES = ["replace", "restructure", "augment", "resilient"]
-MODELS = ["claude", "opus", "openai", "gpt55"]
+MODELS = ["claude", "opus", "openai", "gpt55", "fable5"]
 
 COLUMNS = [
     ("claude_sonnet", "Claude Sonnet 4.6"),
@@ -22,6 +22,7 @@ COLUMNS = [
     ("claude_avg", "Claude Avg"),
     ("gpt4o", "GPT-4o"),
     ("gpt55", "GPT-5.5"),
+    ("fable5", "Claude Fable 5"),
     ("gpt_avg", "GPT Avg"),
     ("grand_avg", "Grand Avg"),
 ]
@@ -118,9 +119,10 @@ def main():
             opus = model_val("opus", inner, key)
             gpt4o = model_val("openai", inner, key)
             gpt55 = model_val("gpt55", inner, key)
+            fable5 = model_val("fable5", inner, key)
             claude_avg = (sonnet + opus) // 2
             gpt_avg = (gpt4o + gpt55) // 2
-            grand_avg = (sonnet + opus + gpt4o + gpt55) // 4
+            grand_avg = (sonnet + opus + gpt4o + gpt55 + fable5) // 5
             out.append({
                 "label": label,
                 "is_separator": is_sep,
@@ -130,6 +132,7 @@ def main():
                 "claude_avg": claude_avg,
                 "gpt4o": gpt4o,
                 "gpt55": gpt55,
+                "fable5": fable5,
                 "gpt_avg": gpt_avg,
                 "grand_avg": grand_avg,
             })

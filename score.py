@@ -6,7 +6,7 @@ rubric, and collects structured scores. Results are cached incrementally so
 the script can be resumed if interrupted.
 
 Output file is chosen automatically based on the model:
-  - claude-fable-5                 → scores_fable.json
+  - claude-fable-5                 → scores_fable5.json
   - claude-opus-4-8                → scores_opus.json
   - gpt-5.5                        → scores_gpt55.json
   - Claude models (claude-*)       → scores_claude.json
@@ -151,7 +151,7 @@ what drives the elasticity score, and why the net_effect category fits>"
 
 def get_output_file(model):
     if model == "claude-fable-5":
-        return "scores_fable.json"
+        return "scores_fable5.json"
     if model == "claude-opus-4-8":
         return "scores_opus.json"
     if model == "gpt-5.5":
@@ -172,7 +172,7 @@ def score_occupation(client, text, model):
             "system": SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": text}],
         }
-        if model != "claude-opus-4-8":
+        if model not in ("claude-opus-4-8", "claude-fable-5"):
             body["temperature"] = 0.2
         response = client.post(
             ANTHROPIC_API_URL,
@@ -188,7 +188,10 @@ def score_occupation(client, text, model):
         except Exception:
             print(f"API error response: {response.text}")
             raise
-        content = response.json()["content"][0]["text"]
+        # Some models (e.g. claude-fable-5) prepend a "thinking" block, so
+        # pick the first text block rather than assuming content[0].
+        blocks = response.json()["content"]
+        content = next(b["text"] for b in blocks if b["type"] == "text")
     elif model.startswith("gpt-"):
         body = {
             "model": model,
@@ -252,6 +255,8 @@ def main():
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--end", type=int, default=None)
+    parser.add_argument("--limit", type=int, default=None,
+                        help="Score at most this many occupations")
     parser.add_argument("--delay", type=float, default=0.5)
     parser.add_argument("--force", action="store_true",
                         help="Re-score even if already cached")
@@ -263,6 +268,8 @@ def main():
         occupations = json.load(f)
 
     subset = occupations[args.start:args.end]
+    if args.limit is not None:
+        subset = subset[:args.limit]
 
     # Load existing scores
     scores = {}
