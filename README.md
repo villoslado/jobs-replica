@@ -2,12 +2,12 @@
 
 A research tool for analyzing and visualizing how artificial intelligence will
 affect 342 US occupations across every sector of the economy. Built on Bureau
-of Labor Statistics Occupational Outlook Handbook data, scored by four
-independent LLMs (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and GPT-5.5), and
-visualized as an interactive treemap.
+of Labor Statistics Occupational Outlook Handbook data, scored by five
+independent LLMs (Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, GPT-5.5, and
+Claude Fable 5), and visualized as an interactive treemap.
 
 > Forked from [karpathy/jobs](https://github.com/karpathy/jobs) and extended
-> with a two-dimensional scoring framework, four-model comparison, and
+> with a two-dimensional scoring framework, five-model comparison, and
 > fully-burdened labor cost exposure analysis.
 
 **Live site:** https://jobs-replica-production.up.railway.app/
@@ -18,14 +18,15 @@ visualized as an interactive treemap.
 
 This project is an experiment and should be interpreted as such.
 
-- **LLMs make mistakes.** Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o, and
-  GPT-5.5 are general-purpose language models, not labor economists. Their
+- **LLMs make mistakes.** Claude Sonnet 4.6, Claude Opus 4.8, GPT-4o,
+  GPT-5.5, and Claude Fable 5 are general-purpose language models, not labor
+  economists. Their
   scores reflect patterns in training data, not rigorous economic analysis.
   They can be wrong, inconsistent, or biased in ways that are difficult to
   detect.
 - **This is not a forecast.** Nothing in this project predicts what will
   happen to any occupation, worker, or industry. It is a structured way of
-  asking four AI models how they reason about AI's impact on work — nothing
+  asking five AI models how they reason about AI's impact on work — nothing
   more.
 - **The framework is a simplification.** Real labor market dynamics involve
   regulatory environments, union protections, capital availability, adoption
@@ -40,9 +41,9 @@ This project is an experiment and should be interpreted as such.
   inform hiring, investment, policy, or career decisions. If you are
   researching AI's impact on labor markets seriously, please consult
   peer-reviewed economic research.
-- **Four models are better than one — but still not ground truth.** Using
-  four models independently and surfacing disagreements adds a layer of
-  robustness, but model agreement does not equal accuracy. All four models
+- **Five models are better than one — but still not ground truth.** Using
+  five models independently and surfacing disagreements adds a layer of
+  robustness, but model agreement does not equal accuracy. All five models
   share training data biases and may systematically over- or underestimate
   AI's impact in certain domains.
 
@@ -92,20 +93,21 @@ The two dimensions combine into one of four outcome categories:
 
 ---
 
-## Four-Model Scoring
+## Five-Model Scoring
 
-The same prompt is run through four models independently:
+The same prompt is run through five models independently:
 - **Claude Sonnet 4.6** (`claude-sonnet-4-6`) → `scores_claude.json`
 - **Claude Opus 4.8** (`claude-opus-4-8`) → `scores_opus.json`
 - **GPT-4o** (`gpt-4o`) → `scores_openai.json`
 - **GPT-5.5** (`gpt-5.5`) → `scores_gpt55.json`
+- **Claude Fable 5** (`claude-fable-5`) → `scores_fable5.json`
 
-Occupations are flagged as **contested** when any two of the four models
+Occupations are flagged as **contested** when any two of the five models
 disagree:
 - The `net_effect` category differs between any two models, OR
 - Disruption or elasticity scores differ by ≥ 2 points
 
-**260 of 342 occupations** are flagged as contested. Contested occupations are
+**276 of 342 occupations** are flagged as contested. Contested occupations are
 surfaced in the visualization and exported separately in `contested.csv`.
 Model disagreement is itself a signal — high disagreement likely indicates
 genuine uncertainty about an occupation's AI trajectory.
@@ -126,10 +128,11 @@ benefits, payroll taxes, retirement, insurance, and legally required
 contributions on top of base wages.
 
 Results are aggregated by `net_effect` category and exported to
-`summary.csv` with per-model and blended-average columns — giving a range
-rather than a point estimate for the dollar figures. The figures describe the
-economic scale of AI exposure in productivity contexts, not predicted savings
-or losses.
+`summary.csv` with per-model columns — including a **Claude Fable 5** column —
+and blended-average columns. The **Grand Avg** column averages all five models,
+giving a range rather than a point estimate for the dollar figures. The figures
+describe the economic scale of AI exposure in productivity contexts, not
+predicted savings or losses.
 
 ---
 
@@ -159,6 +162,7 @@ uv run python score.py --model claude-sonnet-4-6
 uv run python score.py --model claude-opus-4-8
 uv run python score.py --model gpt-4o
 uv run python score.py --model gpt-5.5
+uv run python score.py --model claude-fable-5
 
 # 5. Build site data
 uv run python build_site_data.py
@@ -169,6 +173,12 @@ uv run python aggregate.py
 # 7. Serve the visualization locally
 cd site && python -m http.server 8000
 ```
+
+> **Note on `claude-fable-5`:** this model returns extended-thinking blocks, so
+> its first response block is a `thinking` block rather than the answer. The
+> `score.py` parser selects the first `text` block from the response content
+> rather than assuming `content[0]`. Like `claude-opus-4-8`, its API call omits
+> the `temperature` parameter.
 
 ---
 
@@ -182,9 +192,10 @@ cd site && python -m http.server 8000
 | `scores_opus.json` | Claude Opus 4.8 scores — disruption, elasticity, net_effect, rationale |
 | `scores_openai.json` | GPT-4o scores — disruption, elasticity, net_effect, rationale |
 | `scores_gpt55.json` | GPT-5.5 scores — disruption, elasticity, net_effect, rationale |
+| `scores_fable5.json` | Claude Fable 5 scores — disruption, elasticity, net_effect, rationale |
 | `site/data.json` | Merged dataset for the visualization frontend |
 | `summary.csv` | Jobs and fully-burdened $ exposed by net_effect × model |
-| `contested.csv` | Occupations where any two of the four models meaningfully disagree |
+| `contested.csv` | Occupations where any two of the five models meaningfully disagree |
 | `html/` | Raw HTML pages from BLS (~40MB, source of truth) |
 | `pages/` | Clean Markdown versions of each occupation page |
 | `site/` | Static website (treemap visualization) |
@@ -197,7 +208,7 @@ Three things to keep in mind when reading these results:
 
 - **Not based on Acemoglu's model.** This analysis does not use an economic
   model. It is a structured prompt-engineering exercise — each BLS occupation
-  description is sent to four AI models that score it on two dimensions.
+  description is sent to five AI models that score it on two dimensions.
   Acemoglu's work operates at the task level using economic viability
   thresholds; this analysis operates at the occupation level using LLM
   judgment. The approaches are complementary but distinct.
@@ -239,5 +250,5 @@ OPENAI_API_KEY=your_openai_key
 
 Original data pipeline and visualization by
 [Andrej Karpathy](https://github.com/karpathy/jobs). Extended with two-axis
-scoring framework, four-model comparison, BLS ECEC-sourced burden factors,
+scoring framework, five-model comparison, BLS ECEC-sourced burden factors,
 and dollar exposure aggregation.

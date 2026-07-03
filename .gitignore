@@ -25,3 +25,5 @@ embeddings.json
 # Business idea generation (uncommitted)
 ideas.json
 ideate.py
+ideate_fable5.py
+ideas_fable5.json
