@@ -203,8 +203,8 @@ def score_occupation(client, text, model):
                 {"role": "user", "content": text},
             ],
         }
-        if model == "gpt-5.6-sol":
-            # gpt-5.6-sol uses max_completion_tokens and rejects temperature
+        if model in ("gpt-5.6-sol", "gpt-5.6"):
+            # gpt-5.6 uses max_completion_tokens and rejects temperature
             body["max_completion_tokens"] = 1024
         elif model != "gpt-5.5":
             body["temperature"] = 0.2
