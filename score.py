@@ -9,6 +9,7 @@ Output file is chosen automatically based on the model:
   - claude-fable-5                 → scores_fable5.json
   - claude-opus-4-8                → scores_opus.json
   - gpt-5.5                        → scores_gpt55.json
+  - gpt-5.6-sol / gpt-5.6          → scores_gpt56sol.json
   - Claude models (claude-*)       → scores_claude.json
   - OpenAI models (gpt-*)          → scores_openai.json
   - Everything else (OpenRouter)   → scores.json
@@ -156,6 +157,8 @@ def get_output_file(model):
         return "scores_opus.json"
     if model == "gpt-5.5":
         return "scores_gpt55.json"
+    if model in ("gpt-5.6-sol", "gpt-5.6"):
+        return "scores_gpt56sol.json"
     if model.startswith("claude-"):
         return "scores_claude.json"
     if model.startswith("gpt-"):
@@ -200,7 +203,10 @@ def score_occupation(client, text, model):
                 {"role": "user", "content": text},
             ],
         }
-        if model != "gpt-5.5":
+        if model == "gpt-5.6-sol":
+            # gpt-5.6-sol uses max_completion_tokens and rejects temperature
+            body["max_completion_tokens"] = 1024
+        elif model != "gpt-5.5":
             body["temperature"] = 0.2
         response = client.post(
             OPENAI_API_URL,
