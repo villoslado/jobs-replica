@@ -10,6 +10,7 @@ Output file is chosen automatically based on the model:
   - claude-opus-4-8                → scores_opus.json
   - gpt-5.5                        → scores_gpt55.json
   - gpt-5.6-sol / gpt-5.6          → scores_gpt56sol.json
+  - grok-4.5                       → scores_grok45.json
   - Claude models (claude-*)       → scores_claude.json
   - OpenAI models (gpt-*)          → scores_openai.json
   - Everything else (OpenRouter)   → scores.json
@@ -36,6 +37,7 @@ DEFAULT_MODEL = "google/gemini-3-flash-preview"
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"
 OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+XAI_API_URL = "https://api.x.ai/v1/chat/completions"
 
 SYSTEM_PROMPT = """\
 You are an expert labor economist and AI researcher evaluating how artificial \
@@ -159,6 +161,8 @@ def get_output_file(model):
         return "scores_gpt55.json"
     if model in ("gpt-5.6-sol", "gpt-5.6"):
         return "scores_gpt56sol.json"
+    if model == "grok-4.5":
+        return "scores_grok45.json"
     if model.startswith("claude-"):
         return "scores_claude.json"
     if model.startswith("gpt-"):
@@ -195,6 +199,30 @@ def score_occupation(client, text, model):
         # pick the first text block rather than assuming content[0].
         blocks = response.json()["content"]
         content = next(b["text"] for b in blocks if b["type"] == "text")
+    elif model == "grok-4.5":
+        # xAI is OpenAI-compatible: GPT-4o-style body (max_tokens, temperature)
+        response = client.post(
+            XAI_API_URL,
+            headers={
+                "Authorization": f"Bearer {os.environ['XAI_API_KEY']}",
+            },
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": text},
+                ],
+                "max_tokens": 1024,
+                "temperature": 0.2,
+            },
+            timeout=60,
+        )
+        try:
+            response.raise_for_status()
+        except Exception:
+            print(f"API error response: {response.text}")
+            raise
+        content = response.json()["choices"][0]["message"]["content"]
     elif model.startswith("gpt-"):
         body = {
             "model": model,
