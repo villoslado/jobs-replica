@@ -27,3 +27,11 @@ ideas.json
 ideate.py
 ideate_fable5.py
 ideas_fable5.json
+
+# Channel monetization analysis (uncommitted)
+channel_score.py
+scores_channel.json
+
+# Latent demand analysis (uncommitted)
+latent_demand.py
+latent_demand.json
