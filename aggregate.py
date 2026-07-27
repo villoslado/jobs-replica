@@ -14,11 +14,12 @@ import csv
 import json
 
 CATEGORIES = ["replace", "restructure", "augment", "resilient"]
-MODELS = ["claude", "opus", "openai", "gpt55", "gpt56sol", "fable5", "grok45"]
+MODELS = ["claude", "opus", "opus5", "openai", "gpt55", "gpt56sol", "fable5", "grok45"]
 
 COLUMNS = [
     ("claude_sonnet", "Claude Sonnet 4.6"),
     ("claude_opus", "Claude Opus 4.8"),
+    ("claude_opus5", "Claude Opus 5"),
     ("claude_avg", "Claude Avg"),
     ("gpt4o", "GPT-4o"),
     ("gpt55", "GPT-5.5"),
@@ -119,20 +120,24 @@ def main():
             inner = label.strip()
             sonnet = model_val("claude", inner, key)
             opus = model_val("opus", inner, key)
+            opus5 = model_val("opus5", inner, key)
             gpt4o = model_val("openai", inner, key)
             gpt55 = model_val("gpt55", inner, key)
             gpt56sol = model_val("gpt56sol", inner, key)
             fable5 = model_val("fable5", inner, key)
             grok45 = model_val("grok45", inner, key)
-            claude_avg = (sonnet + opus) // 2
+            claude_avg = (sonnet + opus + opus5 + fable5) // 4
             gpt_avg = (gpt4o + gpt55 + gpt56sol) // 3
-            grand_avg = (sonnet + opus + gpt4o + gpt55 + gpt56sol + fable5 + grok45) // 7
+            grand_avg = (
+                sonnet + opus + opus5 + gpt4o + gpt55 + gpt56sol + fable5 + grok45
+            ) // 8
             out.append({
                 "label": label,
                 "is_separator": is_sep,
                 "is_total": is_total,
                 "claude_sonnet": sonnet,
                 "claude_opus": opus,
+                "claude_opus5": opus5,
                 "claude_avg": claude_avg,
                 "gpt4o": gpt4o,
                 "gpt55": gpt55,

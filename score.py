@@ -7,6 +7,7 @@ the script can be resumed if interrupted.
 
 Output file is chosen automatically based on the model:
   - claude-fable-5                 → scores_fable5.json
+  - claude-opus-5                  → scores_opus5.json
   - claude-opus-4-8                → scores_opus.json
   - gpt-5.5                        → scores_gpt55.json
   - gpt-5.6-sol / gpt-5.6          → scores_gpt56sol.json
@@ -155,6 +156,8 @@ what drives the elasticity score, and why the net_effect category fits>"
 def get_output_file(model):
     if model == "claude-fable-5":
         return "scores_fable5.json"
+    if model == "claude-opus-5":
+        return "scores_opus5.json"
     if model == "claude-opus-4-8":
         return "scores_opus.json"
     if model == "gpt-5.5":
@@ -175,11 +178,13 @@ def score_occupation(client, text, model):
     if model.startswith("claude-"):
         body = {
             "model": model,
-            "max_tokens": 1024,
+            # claude-opus-5 runs adaptive thinking by default, and max_tokens
+            # bounds thinking plus response text — give it room for both.
+            "max_tokens": 4096 if model == "claude-opus-5" else 1024,
             "system": SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": text}],
         }
-        if model not in ("claude-opus-4-8", "claude-fable-5"):
+        if model not in ("claude-opus-4-8", "claude-fable-5", "claude-opus-5"):
             body["temperature"] = 0.2
         response = client.post(
             ANTHROPIC_API_URL,
